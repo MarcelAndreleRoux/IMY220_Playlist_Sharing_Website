@@ -1,2 +1,8 @@
-# IMY220_Playlist_Sharing_Website
- Create a basic playlist and song sharing website.
+Build docker image:
+docker build -t imy220-playlist-website .
+
+Run docker image:
+docker run -p 3000:3000 imy220-playlist-website
+
+Stop docker image:
+Ctrl + C in terminal
