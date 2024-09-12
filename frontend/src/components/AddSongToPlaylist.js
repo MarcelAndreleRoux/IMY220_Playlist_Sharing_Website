@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-function AddSongToPlaylistPage({ playlists, addSongToPlaylist, songs }) {
+const AddSongToPlaylistPage = ({ playlists, addSongToPlaylist, songs }) => {
   const { songid } = useParams();
   const selectedSong = songs.find((song) => song.id === parseInt(songid));
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -13,8 +13,8 @@ function AddSongToPlaylistPage({ playlists, addSongToPlaylist, songs }) {
   const handleAddSong = (playlistId) => {
     const playlist = playlists.find((pl) => pl.id === playlistId);
 
-    // Check if the song already exists in the playlist
-    const songAlreadyInPlaylist = playlist.songs.includes(selectedSong.id);
+    // Safely check if the playlist.songs is defined and includes the selected song
+    const songAlreadyInPlaylist = playlist?.songs?.includes(selectedSong.id);
 
     if (songAlreadyInPlaylist) {
       // If song exists, navigate directly to the playlist page
@@ -39,7 +39,7 @@ function AddSongToPlaylistPage({ playlists, addSongToPlaylist, songs }) {
               className="btn btn-primary"
               onClick={() => handleAddSong(playlist.id)}
             >
-              {playlist.songs.includes(selectedSong.id)
+              {playlist?.songs?.includes(selectedSong.id)
                 ? "Go to Playlist"
                 : `Add Song to ${playlist.name}`}
             </button>
@@ -48,6 +48,6 @@ function AddSongToPlaylistPage({ playlists, addSongToPlaylist, songs }) {
       </div>
     </div>
   );
-}
+};
 
 export default AddSongToPlaylistPage;

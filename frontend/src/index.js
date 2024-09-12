@@ -32,7 +32,8 @@ const playlists = [
     name: "Playlist 1",
     songs: [1, 2],
     description: "My first playlist",
-    coverImage: { DefaultEdit },
+    coverImage:
+      "https://t4.ftcdn.net/jpg/04/73/25/49/360_F_473254957_bxG9yf4ly7OBO5I0O5KABlN930GwaMQz.jpg",
     hashtags: ["#chill", "#relax"],
     creatorId: 1,
     creationDate: "2024-09-11",
@@ -42,12 +43,14 @@ const playlists = [
         userId: 2,
         text: "Great playlist! Love the song choices.",
         stars: 5,
+        likes: 10,
       },
       {
         id: 2,
         userId: 1,
         text: "Amazing vibes!",
         stars: 4,
+        likes: 3,
       },
     ],
   },
@@ -56,7 +59,8 @@ const playlists = [
     name: "Playlist 2",
     songs: [1, 2, 3],
     description: "My second playlist",
-    coverImage: { DefaultEdit },
+    coverImage:
+      "https://t4.ftcdn.net/jpg/04/73/25/49/360_F_473254957_bxG9yf4ly7OBO5I0O5KABlN930GwaMQz.jpg",
     hashtags: ["#upbeat", "#party"],
     creatorId: 2,
     creationDate: "2024-09-12",
@@ -66,6 +70,7 @@ const playlists = [
         userId: 1,
         text: "This playlist gets me moving!",
         stars: 4,
+        likes: 5,
       },
     ],
   },
@@ -78,7 +83,8 @@ const users = [
     email: "test1@gmail.com",
     password: "Test1111#",
     friends: [2],
-    profilePic: { DefaultImage },
+    profilePic:
+      "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
     playlists: [],
   },
   {
@@ -87,7 +93,8 @@ const users = [
     email: "test2@gmail.com",
     friends: [1],
     password: "Test2222#",
-    profilePic: { DefaultImage },
+    profilePic:
+      "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
     playlists: [],
   },
 ];

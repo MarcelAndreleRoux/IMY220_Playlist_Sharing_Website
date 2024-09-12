@@ -8,6 +8,19 @@ export class NavBar extends React.Component {
     // Get the userId from localStorage
     const userId = localStorage.getItem("userId");
 
+    // Check user Auth
+    handleMyPlaylistsClick = (e) => {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        // Prevent navigation
+        e.preventDefault();
+
+        // Display alert to user
+        alert("You must be logged in to view your playlists.");
+      }
+    };
+
     // If there's no userId in localStorage, redirect to login or handle appropriately
     if (!userId) {
       return (
@@ -26,7 +39,12 @@ export class NavBar extends React.Component {
         </Link>
         <Link to="/songfeed">Songs Feed</Link>
         <Link to="/playlistfeed">Playlists Feed</Link>
-        <Link to={`/my_playlists/${localStorage.getItem("userId")}`}>
+
+        {/* Check if userId exists before allowing access to My Playlist */}
+        <Link
+          to={`/my_playlists/${userId}`}
+          onClick={this.handleMyPlaylistsClick}
+        >
           My Playlist
         </Link>
 

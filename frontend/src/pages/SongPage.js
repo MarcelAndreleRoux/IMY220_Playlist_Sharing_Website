@@ -6,7 +6,7 @@ import { SpotifyEmbed } from "../components/SpotifyEmbed";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 import { NavBar } from "../components/NavBar";
 
-export const SongPage = ({ songs, users }) => {
+const SongPage = ({ songs, users }) => {
   const { songid } = useParams();
   const song = songs.find((s) => s.id === parseInt(songid));
 

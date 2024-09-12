@@ -6,7 +6,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-export const EditProfilePage = ({ users }) => {
+const EditProfilePage = ({ users }) => {
   const { userid } = useParams();
 
   const user = users.find((u) => u.id === parseInt(userid));
@@ -32,3 +32,5 @@ export const EditProfilePage = ({ users }) => {
     </div>
   );
 };
+
+export default EditProfilePage;

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
-export function SplashLogin({ users, setAuthenticatedUser }) {
+const SplashLogin = ({ users, setAuthenticatedUser }) => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
@@ -164,4 +164,6 @@ export function SplashLogin({ users, setAuthenticatedUser }) {
       </p>
     </div>
   );
-}
+};
+
+export default SplashLogin;

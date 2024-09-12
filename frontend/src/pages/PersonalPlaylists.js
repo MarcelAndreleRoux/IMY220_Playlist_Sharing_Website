@@ -11,7 +11,13 @@ function PersonalPlaylists({ users }) {
   const user = users.find((user) => user.userId === parseInt(userId));
 
   if (!user || !user.playlists || user.playlists.length === 0) {
-    return <p>No playlists added yet.</p>;
+    return (
+      <>
+        <NavBar />
+        <p>No playlists added yet.</p>
+        <Link to="/playlistfeed">Add Something</Link>
+      </>
+    );
   }
 
   return (

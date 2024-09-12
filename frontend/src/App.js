@@ -1,18 +1,19 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
-import { SongFeed } from "./pages/SongsFeedPage";
-import { SplashLogin } from "./pages/SplashLogin";
+import SongsFeedPage from "./pages/SongsFeedPage";
+import SplashLogin from "./pages/SplashLogin";
 import { SplashRegister } from "./pages/SplashRegister";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SplashPage } from "./pages/SplashPage";
 import PlaylistPage from "./pages/PlaylistPage";
 import PersonalPlaylists from "./pages/PersonalPlaylists";
 import SongPage from "./pages/SongPage";
-import { AddToPlaylistPage } from "./components/AddToPlaylistToFeed";
+import AddToPlaylistPage from "./components/AddToPlaylistToFeed";
 import AddSongToPlaylistPage from "./components/AddSongToPlaylist";
 import AddSongPage from "./components/AddSongPage";
 import PlaylistFeed from "./pages/PlaylistFeedPage";
+import AddPlaylistComment from "./components/AddPlaylistComment";
 
 export class App extends React.Component {
   constructor(props) {
@@ -30,15 +31,48 @@ export class App extends React.Component {
     this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
     this.addNewSong = this.addNewSong.bind(this);
     this.setUsers = this.setUsers.bind(this);
+    this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
+    this.setPlaylists = this.setPlaylists.bind(this);
+    this.updatePlaylistComments = this.updatePlaylistComments.bind(this);
   }
 
-  addSongToPlaylist(playlistId, song) {
-    // Find the playlist and add the song's ID to it
+  removeSongFromPlaylist(playlistId, songId) {
     const updatedPlaylists = this.state.playlists.map((playlist) => {
       if (playlist.id === playlistId) {
         return {
           ...playlist,
-          songs: [...playlist.songs, song.id],
+          songs: playlist.songs.filter((id) => id !== songId), // Remove the song
+        };
+      }
+      return playlist;
+    });
+
+    this.setState({ playlists: updatedPlaylists });
+  }
+
+  updatePlaylistComments(playlistId, updatedComments) {
+    const updatedPlaylists = this.state.playlists.map((playlist) => {
+      if (playlist.id === playlistId) {
+        return {
+          ...playlist,
+          comments: updatedComments, // Update the comments array
+        };
+      }
+      return playlist;
+    });
+
+    this.setState({ playlists: updatedPlaylists });
+  }
+
+  addSongToPlaylist(playlistId, song) {
+    // Find the playlist and ensure that 'songs' is initialized as an array
+    const updatedPlaylists = this.state.playlists.map((playlist) => {
+      if (playlist.id === playlistId) {
+        // Ensure 'songs' is initialized to an array if it's undefined
+        const songs = playlist.songs || [];
+        return {
+          ...playlist,
+          songs: [...songs, song.id], // Safely spread the existing songs
         };
       }
 
@@ -52,15 +86,43 @@ export class App extends React.Component {
   }
 
   addNewPlaylist(newPlaylist) {
+    // Get the authenticated user's ID
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+      console.error("No authenticated user");
+      return;
+    }
+
+    // Update global playlists
     this.setState((prevState) => ({
       playlists: [...prevState.playlists, newPlaylist],
     }));
+
+    // Find the authenticated user in the users array
+    const updatedUsers = this.state.users.map((user) => {
+      if (user.userId === parseInt(userId)) {
+        // Add the new playlist to the authenticated user's playlists
+        return {
+          ...user,
+          playlists: [...(user.playlists || []), newPlaylist],
+        };
+      }
+      return user;
+    });
+
+    // Update the users state
+    this.setState({ users: updatedUsers });
   }
 
   addNewSong(newSong) {
     this.setState((prevState) => ({
       songs: [...prevState.songs, newSong],
     }));
+  }
+
+  setPlaylists(updatedPlaylists) {
+    this.setState({ playlists: updatedPlaylists });
   }
 
   setUsers(updatedUsers) {
@@ -71,6 +133,20 @@ export class App extends React.Component {
     this.setState({
       authenticatedUser: { username, email, userId },
     });
+
+    localStorage.setItem(
+      "authenticatedUser",
+      JSON.stringify({ username, email, userId })
+    );
+  }
+
+  componentDidMount() {
+    const storedUser = localStorage.getItem("authenticatedUser");
+    if (storedUser) {
+      this.setState({
+        authenticatedUser: JSON.parse(storedUser),
+      });
+    }
   }
 
   render() {
@@ -108,7 +184,13 @@ export class App extends React.Component {
       {
         path: "/playlist/:playlistid",
         element: (
-          <PlaylistPage playlists={playlists} songs={songs} users={users} />
+          <PlaylistPage
+            playlists={this.state.playlists}
+            songs={this.state.songs}
+            users={this.state.users}
+            removeSongFromPlaylist={this.removeSongFromPlaylist}
+            updatePlaylistComments={this.updatePlaylistComments}
+          />
         ),
       },
       {
@@ -128,7 +210,9 @@ export class App extends React.Component {
       },
       {
         path: "/songfeed",
-        element: <SongFeed playlists={playlists} songs={songs} users={users} />,
+        element: (
+          <SongsFeedPage playlists={playlists} songs={songs} users={users} />
+        ),
       },
       {
         path: "/playlistfeed",
@@ -136,9 +220,7 @@ export class App extends React.Component {
           <PlaylistFeed
             playlists={playlists}
             users={users}
-            setUsers={(updatedUsers) => {
-              this.setState({ users: updatedUsers });
-            }}
+            setUsers={this.setUsers}
           />
         ),
       },
@@ -151,11 +233,23 @@ export class App extends React.Component {
         element: <AddSongPage songs={songs} addNewSong={this.addNewSong} />,
       },
       {
+        path: "/addcomment/:playlistid",
+        element: (
+          <AddPlaylistComment
+            playlists={playlists}
+            setPlaylists={this.setPlaylists}
+            users={users}
+          />
+        ),
+      },
+      {
         path: "/create_playlist",
         element: (
           <AddToPlaylistPage
-            addNewPlaylist={this.addNewPlaylist}
             genres={genres}
+            addNewPlaylist={this.addNewPlaylist}
+            users={users}
+            setUsers={this.setUsers}
           />
         ),
       },

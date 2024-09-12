@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { SpotifyEmbed } from "../components/SpotifyEmbed";
+import SpotifyEmbed from "../components/SpotifyEmbed";
 import { NavBar } from "../components/NavBar";
 
-export class SongFeed extends React.Component {
+class SongsFeedPage extends React.Component {
   render() {
     const { songs } = this.props;
 
@@ -38,16 +38,15 @@ export class SongFeed extends React.Component {
           </div>
         </div>
 
-        {/* Fixed Add Song Button */}
         <Link to="/addsong" className="add-song-btn">
           Add Song
         </Link>
 
-        <style jsx="true">{`
+        <style>{`
           .add-song-btn {
             position: fixed;
             bottom: 20px;
-            left: 20px;
+            right: 20px;
             background-color: #28a745;
             color: white;
             padding: 15px 20px;
@@ -66,3 +65,5 @@ export class SongFeed extends React.Component {
     );
   }
 }
+
+export default SongsFeedPage;

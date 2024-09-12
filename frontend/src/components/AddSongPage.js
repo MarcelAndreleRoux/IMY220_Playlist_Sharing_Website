@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function AddSongPage({ songs, addNewSong }) {
+const AddSongPage = ({ songs, addNewSong }) => {
   const nameRef = useRef(null);
   const artistRef = useRef(null);
   const linkRef = useRef(null);
@@ -118,6 +118,6 @@ function AddSongPage({ songs, addNewSong }) {
       </form>
     </div>
   );
-}
+};
 
 export default AddSongPage;

@@ -1,6 +1,6 @@
 import React from "react";
 
-export const SpotifyEmbed = ({ songLink }) => {
+const SpotifyEmbed = ({ songLink }) => {
   // Extract the track ID from the song link
   const trackId = songLink.split("/track/")[1].split("?")[0];
 
@@ -21,3 +21,5 @@ export const SpotifyEmbed = ({ songLink }) => {
     ></iframe>
   );
 };
+
+export default SpotifyEmbed;

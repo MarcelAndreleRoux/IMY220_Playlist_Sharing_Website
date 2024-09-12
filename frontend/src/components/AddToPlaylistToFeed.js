@@ -1,40 +1,29 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useRef, useState } from "react";
+import { useNavigate, NavLink } from "react-router-dom";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 
-export class AddToPlaylistPage extends React.Component {
-  constructor(props) {
-    super(props);
+const AddToPlaylistPage = ({ genres, addNewPlaylist, users, setUsers }) => {
+  const nameRef = useRef(null);
+  const genreRef = useRef(null);
+  const coverImageRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const hashtagsRef = useRef(null);
 
-    // Create refs for each form field
-    this.nameRef = React.createRef();
-    this.genreRef = React.createRef();
-    this.coverImageRef = React.createRef();
-    this.descriptionRef = React.createRef();
-    this.hashtagsRef = React.createRef();
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    this.state = {
-      error: "",
-    };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  // Handle form submission using refs
-  handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
-    const name = this.nameRef.current.value;
-    const genre = this.genreRef.current.value;
-    const coverImage = this.coverImageRef.current.value;
-    const description = this.descriptionRef.current.value;
-    const hashtags = this.hashtagsRef.current.value;
+    const name = nameRef.current.value;
+    const genre = genreRef.current.value;
+    const coverImage = coverImageRef.current.value;
+    const description = descriptionRef.current.value;
+    const hashtags = hashtagsRef.current.value;
 
     // Basic validation
     if (!name || !genre) {
-      this.setState({
-        error: "Please fill in all required fields (name and genre).",
-      });
+      setError("Please fill in all required fields (name and genre).");
       return;
     }
 
@@ -48,103 +37,123 @@ export class AddToPlaylistPage extends React.Component {
       hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
     };
 
-    // Add new playlist to the app state
-    this.props.addNewPlaylist(newPlaylist);
+    // Ensure `users` is defined before proceeding
+    if (!users || users.length === 0) {
+      setError("User data is not available.");
+      return;
+    }
 
-    // Navigate to playlist list page after creation
-    window.location.href = "/playlist_list";
-  }
+    // Add new playlist to the global playlist state
+    addNewPlaylist(newPlaylist);
 
-  render() {
-    const { genres } = this.props;
-    const { error } = this.state;
+    // Add the playlist to the authenticated user's personal playlists
+    const userId = localStorage.getItem("userId");
+    const currentUser = users.find((user) => user.userId === parseInt(userId));
 
-    return (
-      <div className="container mt-5">
-        <h1>Create a New Playlist</h1>
-        <form onSubmit={this.handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="name" className="form-label">
-              Playlist Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="name"
-              ref={this.nameRef}
-              placeholder="Enter playlist name"
-              required
-            />
-          </div>
+    if (currentUser) {
+      // Update user's playlists
+      const updatedUser = {
+        ...currentUser,
+        playlists: [...(currentUser.playlists || []), newPlaylist],
+      };
 
-          <div className="mb-3">
-            <label htmlFor="genre" className="form-label">
-              Genre
-            </label>
-            <select
-              className="form-select"
-              id="genre"
-              ref={this.genreRef}
-              required
-            >
-              <option value="">Select a genre</option>
-              {genres.map((genre, index) => (
-                <option key={index} value={genre}>
-                  {genre}
-                </option>
-              ))}
-            </select>
-          </div>
+      const updatedUsers = users.map((user) =>
+        user.userId === parseInt(userId) ? updatedUser : user
+      );
 
-          <div className="mb-3">
-            <label htmlFor="coverImage" className="form-label">
-              Cover Image URL (optional)
-            </label>
-            <input
-              type="url"
-              className="form-control"
-              id="coverImage"
-              ref={this.coverImageRef}
-              placeholder="Enter image URL"
-            />
-          </div>
+      // Update users state
+      setUsers(updatedUsers);
+    } else {
+      setError("User not found.");
+      return;
+    }
 
-          <div className="mb-3">
-            <label htmlFor="description" className="form-label">
-              Description (optional)
-            </label>
-            <textarea
-              className="form-control"
-              id="description"
-              ref={this.descriptionRef}
-              placeholder="Enter playlist description"
-            />
-          </div>
+    // Navigate to playlist feed after playlist creation
+    navigate("/playlistfeed");
+  };
 
-          <div className="mb-3">
-            <label htmlFor="hashtags" className="form-label">
-              Hashtags (optional, separated by commas)
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="hashtags"
-              ref={this.hashtagsRef}
-              placeholder="e.g., #chill, #workout"
-            />
-          </div>
+  return (
+    <div className="container mt-5">
+      <h1>Create a New Playlist</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label htmlFor="name" className="form-label">
+            Playlist Name
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="name"
+            ref={nameRef}
+            placeholder="Enter playlist name"
+            required
+          />
+        </div>
 
-          {error && <div className="alert alert-danger">{error}</div>}
+        <div className="mb-3">
+          <label htmlFor="genre" className="form-label">
+            Genre
+          </label>
+          <select className="form-select" id="genre" ref={genreRef} required>
+            <option value="">Select a genre</option>
+            {genres.map((genre, index) => (
+              <option key={index} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <button type="submit" className="btn btn-primary">
-            Create Playlist
-          </button>
-        </form>
+        <div className="mb-3">
+          <label htmlFor="coverImage" className="form-label">
+            Cover Image URL (optional)
+          </label>
+          <input
+            type="url"
+            className="form-control"
+            id="coverImage"
+            ref={coverImageRef}
+            placeholder="Enter image URL"
+          />
+        </div>
 
-        <NavLink to="/playlist_list" className="btn btn-link mt-3">
-          Back to Playlist List
-        </NavLink>
-      </div>
-    );
-  }
-}
+        <div className="mb-3">
+          <label htmlFor="description" className="form-label">
+            Description (optional)
+          </label>
+          <textarea
+            className="form-control"
+            id="description"
+            ref={descriptionRef}
+            placeholder="Enter playlist description"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="hashtags" className="form-label">
+            Hashtags (optional, separated by commas)
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="hashtags"
+            ref={hashtagsRef}
+            placeholder="e.g., #chill, #workout"
+          />
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <button type="submit" className="btn btn-primary">
+          Create Playlist
+        </button>
+      </form>
+
+      <NavLink to="/playlistfeed" className="btn btn-link mt-3">
+        Back to Playlist List
+      </NavLink>
+    </div>
+  );
+};
+
+export default AddToPlaylistPage;
