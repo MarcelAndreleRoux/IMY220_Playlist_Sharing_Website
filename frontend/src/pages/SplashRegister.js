@@ -1,42 +1,34 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 
-export class SplashLogin extends React.Component {
+export class SplashRegister extends React.Component {
   constructor(props) {
     super(props);
+    this.usernameRef = React.createRef();
+    this.emailRef = React.createRef();
+    this.passwordRef = React.createRef();
+    this.confirmPasswordRef = React.createRef();
     this.state = {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
       error: "",
-      formValid: false, // Track if the form is valid
+      formValid: false,
     };
 
-    this.handleInputChange = this.handleInputChange.bind(this);
     this.validateUserInput = this.validateUserInput.bind(this);
-  }
-
-  // Handle input changes for controlled components
-  handleInputChange(event) {
-    const { name, value } = event.target;
-    this.setState({
-      [name]: value,
-    });
   }
 
   // Validate form inputs
   validateUserInput(e) {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
 
-    const { username, email, password, confirmPassword } = this.state;
+    const username = this.usernameRef.current.value;
+    const email = this.emailRef.current.value;
+    const password = this.passwordRef.current.value;
+    const confirmPassword = this.confirmPasswordRef.current.value;
     const { users } = this.props;
 
     // Basic validation
     if (!username || !email || !password || !confirmPassword) {
       this.setState({ error: "Please fill in all fields.", formValid: false });
-
       return;
     }
 
@@ -45,7 +37,6 @@ export class SplashLogin extends React.Component {
         error: "Please enter a valid email address.",
         formValid: false,
       });
-
       return;
     }
 
@@ -54,13 +45,11 @@ export class SplashLogin extends React.Component {
         error: "Password must be at least 8 characters long.",
         formValid: false,
       });
-
       return;
     }
 
     if (password !== confirmPassword) {
       this.setState({ error: "Passwords do not match.", formValid: false });
-
       return;
     }
 
@@ -71,7 +60,6 @@ export class SplashLogin extends React.Component {
         error: "Email already exists. Please use another email.",
         formValid: false,
       });
-
       return;
     }
 
@@ -80,7 +68,7 @@ export class SplashLogin extends React.Component {
   }
 
   render() {
-    const { formValid } = this.state;
+    const { formValid, error } = this.state;
 
     return (
       <div className="container mt-5">
@@ -113,10 +101,8 @@ export class SplashLogin extends React.Component {
               type="text"
               className="form-control"
               id="username"
-              name="username"
+              ref={this.usernameRef}
               placeholder="Enter username here..."
-              value={this.state.username}
-              onChange={this.handleInputChange}
             />
           </div>
 
@@ -128,10 +114,8 @@ export class SplashLogin extends React.Component {
               type="email"
               className="form-control"
               id="email"
-              name="email"
+              ref={this.emailRef}
               placeholder="Enter email here..."
-              value={this.state.email}
-              onChange={this.handleInputChange}
             />
           </div>
 
@@ -143,10 +127,8 @@ export class SplashLogin extends React.Component {
               type="password"
               className="form-control"
               id="password"
-              name="password"
+              ref={this.passwordRef}
               placeholder="Enter password here..."
-              value={this.state.password}
-              onChange={this.handleInputChange}
             />
           </div>
 
@@ -158,10 +140,8 @@ export class SplashLogin extends React.Component {
               type="password"
               className="form-control"
               id="confirmPassword"
-              name="confirmPassword"
+              ref={this.confirmPasswordRef}
               placeholder="Confirm your password..."
-              value={this.state.confirmPassword}
-              onChange={this.handleInputChange}
             />
           </div>
 
@@ -177,9 +157,9 @@ export class SplashLogin extends React.Component {
           </div>
         </form>
 
-        {this.state.error && (
+        {error && (
           <div className="mt-3 alert alert-danger" role="alert">
-            {this.state.error}
+            {error}
           </div>
         )}
 

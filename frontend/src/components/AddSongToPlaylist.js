@@ -1,3 +1,53 @@
-// Add songs (Spotify links) to their playlists
-// The system should display the song with an embedded Spotify player
-// Add the selected song to the playlist
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+
+function AddSongToPlaylistPage({ playlists, addSongToPlaylist, songs }) {
+  const { songid } = useParams();
+  const selectedSong = songs.find((song) => song.id === parseInt(songid));
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
+  if (!selectedSong) {
+    return <div>Song not found</div>;
+  }
+
+  const handleAddSong = (playlistId) => {
+    const playlist = playlists.find((pl) => pl.id === playlistId);
+
+    // Check if the song already exists in the playlist
+    const songAlreadyInPlaylist = playlist.songs.includes(selectedSong.id);
+
+    if (songAlreadyInPlaylist) {
+      // If song exists, navigate directly to the playlist page
+      navigate(`/playlist/${playlistId}`);
+    } else {
+      // Add song to the playlist and navigate to the playlist page
+      addSongToPlaylist(playlistId, selectedSong);
+      navigate(`/playlist/${playlistId}`);
+    }
+  };
+
+  return (
+    <div className="container mt-5">
+      <h1>Add "{selectedSong.name}" to Your Playlist</h1>
+
+      <h3>Select a Playlist:</h3>
+      <div className="list-group">
+        {playlists.map((playlist) => (
+          <div key={playlist.id} className="list-group-item">
+            <h4>{playlist.name}</h4>
+            <button
+              className="btn btn-primary"
+              onClick={() => handleAddSong(playlist.id)}
+            >
+              {playlist.songs.includes(selectedSong.id)
+                ? "Go to Playlist"
+                : `Add Song to ${playlist.name}`}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default AddSongToPlaylistPage;
