@@ -35,6 +35,7 @@ const playlists = [
     coverImage: { DefaultEdit },
     hashtags: ["#chill", "#relax"],
     creatorId: 1,
+    creationDate: "2024-09-11",
     comments: [
       {
         id: 1,
@@ -58,6 +59,7 @@ const playlists = [
     coverImage: { DefaultEdit },
     hashtags: ["#upbeat", "#party"],
     creatorId: 2,
+    creationDate: "2024-09-12",
     comments: [
       {
         id: 3,
@@ -77,6 +79,7 @@ const users = [
     password: "Test1111#",
     friends: [2],
     profilePic: { DefaultImage },
+    playlists: [],
   },
   {
     userId: 2,
@@ -85,6 +88,7 @@ const users = [
     friends: [1],
     password: "Test2222#",
     profilePic: { DefaultImage },
+    playlists: [],
   },
 ];
 

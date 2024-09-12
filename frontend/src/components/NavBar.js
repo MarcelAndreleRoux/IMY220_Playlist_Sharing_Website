@@ -26,7 +26,9 @@ export class NavBar extends React.Component {
         </Link>
         <Link to="/songfeed">Songs Feed</Link>
         <Link to="/playlistfeed">Playlists Feed</Link>
-        <Link to={`/myplaylist/${userId}`}>My Playlist</Link>
+        <Link to={`/my_playlists/${localStorage.getItem("userId")}`}>
+          My Playlist
+        </Link>
 
         <Link to={`/profile/${userId}`}>
           <img width="50px" src={DefaultProfileImage} alt="default_image" />

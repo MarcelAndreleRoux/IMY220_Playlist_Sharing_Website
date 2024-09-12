@@ -7,7 +7,7 @@ import { SplashRegister } from "./pages/SplashRegister";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SplashPage } from "./pages/SplashPage";
 import PlaylistPage from "./pages/PlaylistPage";
-import { PlaylistList } from "./pages/PlaylistList";
+import PersonalPlaylists from "./pages/PersonalPlaylists";
 import SongPage from "./pages/SongPage";
 import { AddToPlaylistPage } from "./components/AddToPlaylistToFeed";
 import AddSongToPlaylistPage from "./components/AddSongToPlaylist";
@@ -29,6 +29,7 @@ export class App extends React.Component {
     this.addNewPlaylist = this.addNewPlaylist.bind(this);
     this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
     this.addNewSong = this.addNewSong.bind(this);
+    this.setUsers = this.setUsers.bind(this);
   }
 
   addSongToPlaylist(playlistId, song) {
@@ -60,6 +61,10 @@ export class App extends React.Component {
     this.setState((prevState) => ({
       songs: [...prevState.songs, newSong],
     }));
+  }
+
+  setUsers(updatedUsers) {
+    this.setState({ users: updatedUsers });
   }
 
   setAuthenticatedUser(username, email, userId) {
@@ -107,10 +112,8 @@ export class App extends React.Component {
         ),
       },
       {
-        path: "/playlist_list",
-        element: (
-          <PlaylistList playlists={playlists} songs={songs} users={users} />
-        ),
+        path: "/my_playlists/:userId",
+        element: <PersonalPlaylists users={users} />,
       },
       {
         path: "/addtoplaylist/:songid",
@@ -132,7 +135,10 @@ export class App extends React.Component {
         element: (
           <PlaylistFeed
             playlists={playlists}
-            addNewPlaylist={this.addNewPlaylist}
+            users={users}
+            setUsers={(updatedUsers) => {
+              this.setState({ users: updatedUsers });
+            }}
           />
         ),
       },

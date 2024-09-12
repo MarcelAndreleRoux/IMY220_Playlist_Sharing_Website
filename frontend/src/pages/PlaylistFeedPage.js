@@ -5,17 +5,42 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
-import { NavBar } from "./NavBar";
+import { NavBar } from "../components/NavBar";
 
 export class PlaylistFeed extends React.Component {
   handleFastAdd = (playlist) => {
-    const { addNewPlaylist } = this.props;
+    const userId = localStorage.getItem("userId");
+    const currentUser = this.props.users.find(
+      (user) => user.userId === parseInt(userId)
+    );
 
-    // Add the playlist to user's own playlists
-    addNewPlaylist({
-      ...playlist,
-      id: Date.now(),
-    });
+    if (currentUser) {
+      // Check if playlist is already in user's playlists
+      const alreadyInPlaylists = currentUser.playlists.some(
+        (pl) => pl.id === playlist.id
+      );
+
+      if (!alreadyInPlaylists) {
+        // Update the user's playlist and setUsers
+        const updatedUser = {
+          ...currentUser,
+          playlists: [
+            ...currentUser.playlists,
+            { ...playlist, likedByUser: true },
+          ],
+        };
+
+        const updatedUsers = this.props.users.map((user) =>
+          user.userId === parseInt(userId) ? updatedUser : user
+        );
+
+        this.props.setUsers(updatedUsers);
+      } else {
+        alert("Playlist is already in your personal playlists.");
+      }
+    } else {
+      alert("User not found.");
+    }
   };
 
   render() {
