@@ -4,7 +4,7 @@ import { HomePage } from "./pages/HomePage";
 import SongsFeedPage from "./pages/SongsFeedPage";
 import SplashLogin from "./pages/SplashLogin";
 import { SplashRegister } from "./pages/SplashRegister";
-import { ProfilePage } from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import { SplashPage } from "./pages/SplashPage";
 import PlaylistPage from "./pages/PlaylistPage";
 import PersonalPlaylists from "./pages/PersonalPlaylists";
@@ -14,6 +14,8 @@ import AddSongToPlaylistPage from "./components/AddSongToPlaylist";
 import AddSongPage from "./components/AddSongPage";
 import PlaylistFeed from "./pages/PlaylistFeedPage";
 import AddPlaylistComment from "./components/AddPlaylistComment";
+import EditPlaylist from "./components/EditPlaylist";
+import EditProfile from "./components/EditProfile";
 
 export class App extends React.Component {
   constructor(props) {
@@ -55,7 +57,7 @@ export class App extends React.Component {
       if (playlist.id === playlistId) {
         return {
           ...playlist,
-          comments: updatedComments, // Update the comments array
+          comments: updatedComments,
         };
       }
       return playlist;
@@ -182,12 +184,16 @@ export class App extends React.Component {
         ),
       },
       {
+        path: "/edit_profile/:userid",
+        element: <EditProfile users={users} setUsers={this.setUsers} />,
+      },
+      {
         path: "/playlist/:playlistid",
         element: (
           <PlaylistPage
-            playlists={this.state.playlists}
-            songs={this.state.songs}
-            users={this.state.users}
+            playlists={playlists}
+            songs={songs}
+            users={users}
             removeSongFromPlaylist={this.removeSongFromPlaylist}
             updatePlaylistComments={this.updatePlaylistComments}
           />
@@ -231,6 +237,18 @@ export class App extends React.Component {
       {
         path: "/addsong",
         element: <AddSongPage songs={songs} addNewSong={this.addNewSong} />,
+      },
+      {
+        path: "/edit_playlist/:playlistid",
+        element: (
+          <EditPlaylist
+            playlists={playlists}
+            songs={songs}
+            genres={genres}
+            users={users}
+            setPlaylists={this.setPlaylists}
+          />
+        ),
       },
       {
         path: "/addcomment/:playlistid",

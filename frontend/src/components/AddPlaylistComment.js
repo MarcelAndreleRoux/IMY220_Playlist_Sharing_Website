@@ -9,18 +9,17 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
   const imageRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get authenticated user (assuming it's stored in localStorage)
   const userId = localStorage.getItem("userId");
   const currentUser = users.find((user) => user.userId === parseInt(userId));
 
   if (!currentUser) {
-    return <p>User not found. Please log in.</p>; // Prevent re-render loop by avoiding setting state here
+    return <p>User not found. Please log in.</p>;
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const commentText = commentRef.current.value;
-    const uploadedImage = imageRef.current.files[0]; // Handle file upload
+    const uploadedImage = imageRef.current.files[0];
 
     if (!commentText || stars === 0) {
       setError("Please fill in the comment and rate with stars.");
@@ -28,19 +27,21 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
     }
 
     const newComment = {
-      id: Date.now(), // Generate a unique ID for the comment
+      id: Date.now(),
       userId: currentUser.userId,
       text: commentText,
       stars: stars,
-      image: uploadedImage ? URL.createObjectURL(uploadedImage) : null, // Preview uploaded image
+      image: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
     };
 
     // Find the playlist and add the comment
     const updatedPlaylists = playlists.map((playlist) => {
       if (playlist.id === parseInt(playlistid)) {
+        // Initialize comments array if it's undefined
+        const comments = playlist.comments || [];
         return {
           ...playlist,
-          comments: [...playlist.comments, newComment],
+          comments: [...comments, newComment],
         };
       }
       return playlist;

@@ -21,6 +21,9 @@ const AddToPlaylistPage = ({ genres, addNewPlaylist, users, setUsers }) => {
     const description = descriptionRef.current.value;
     const hashtags = hashtagsRef.current.value;
 
+    const userId = localStorage.getItem("userId");
+    const currentUser = users.find((user) => user.userId === parseInt(userId));
+
     // Basic validation
     if (!name || !genre) {
       setError("Please fill in all required fields (name and genre).");
@@ -34,7 +37,9 @@ const AddToPlaylistPage = ({ genres, addNewPlaylist, users, setUsers }) => {
       genre,
       coverImage: coverImage || DefaultImage, // Default cover image
       description: description || "No description provided.",
+      creatorId: parseInt(userId),
       hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
+      creationDate: new Date().toISOString(),
     };
 
     // Ensure `users` is defined before proceeding
@@ -45,10 +50,6 @@ const AddToPlaylistPage = ({ genres, addNewPlaylist, users, setUsers }) => {
 
     // Add new playlist to the global playlist state
     addNewPlaylist(newPlaylist);
-
-    // Add the playlist to the authenticated user's personal playlists
-    const userId = localStorage.getItem("userId");
-    const currentUser = users.find((user) => user.userId === parseInt(userId));
 
     if (currentUser) {
       // Update user's playlists

@@ -4,33 +4,28 @@ import DefaultProfileImage from "../../public/assets/images/profile_image_defaul
 import SightLogo from "../../public/assets/images/Muzik_Full_Logo.png";
 
 export class NavBar extends React.Component {
-  render() {
-    // Get the userId from localStorage
+  handleMyPlaylistsClick = (e) => {
     const userId = localStorage.getItem("userId");
 
-    // Check user Auth
-    handleMyPlaylistsClick = (e) => {
-      const userId = localStorage.getItem("userId");
+    if (userId == "undefined") {
+      // Prevent navigation
+      e.preventDefault();
 
-      if (!userId) {
-        // Prevent navigation
-        e.preventDefault();
-
-        // Display alert to user
-        alert("You must be logged in to view your playlists.");
-      }
-    };
-
-    // If there's no userId in localStorage, redirect to login or handle appropriately
-    if (!userId) {
-      return (
-        <nav>
-          <Link to="/login" className="btn btn-danger">
-            Login
-          </Link>
-        </nav>
-      );
+      // Display alert to user
+      alert("You must be logged in to view your playlists.");
     }
+  };
+
+  render() {
+    // Get the userId and user data from localStorage
+    const userId = localStorage.getItem("userId");
+    const userData = JSON.parse(localStorage.getItem("authenticatedUser"));
+
+    // Get the user's profile picture (use default if none)
+    const profilePic =
+      userData && userData.profilePic
+        ? userData.profilePic
+        : DefaultProfileImage;
 
     return (
       <nav>
@@ -40,7 +35,6 @@ export class NavBar extends React.Component {
         <Link to="/songfeed">Songs Feed</Link>
         <Link to="/playlistfeed">Playlists Feed</Link>
 
-        {/* Check if userId exists before allowing access to My Playlist */}
         <Link
           to={`/my_playlists/${userId}`}
           onClick={this.handleMyPlaylistsClick}
@@ -49,7 +43,12 @@ export class NavBar extends React.Component {
         </Link>
 
         <Link to={`/profile/${userId}`}>
-          <img width="50px" src={DefaultProfileImage} alt="default_image" />
+          <img
+            width="50px"
+            src={profilePic}
+            alt="profile_image"
+            className="rounded-circle"
+          />
         </Link>
 
         <Link

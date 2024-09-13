@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 const AddSongToPlaylistPage = ({ playlists, addSongToPlaylist, songs }) => {
   const { songid } = useParams();
   const selectedSong = songs.find((song) => song.id === parseInt(songid));
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
 
   if (!selectedSong) {
     return <div>Song not found</div>;

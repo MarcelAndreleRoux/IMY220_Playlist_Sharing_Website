@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import DefaultPfP from "../../public/assets/images/profile_image_default.jpg";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
@@ -29,8 +29,31 @@ function PlaylistPage({
     removeSongFromPlaylist(playlist.id, songId);
   };
 
-  // Format date if needed
+  // Format date
   const formattedDate = new Date(playlist.creationDate).toLocaleDateString();
+
+  // Handle like/dislike toggle
+  const handleLikeDislikeToggle = (commentId) => {
+    const updatedComments = playlist.comments.map((comment) => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          likes: comment.likedByUser ? comment.likes - 1 : comment.likes + 1,
+          likedByUser: !comment.likedByUser, // Toggle the like status
+        };
+      }
+      return comment;
+    });
+
+    // Call the parent function to update the playlist comments
+    updatePlaylistComments(playlist.id, updatedComments);
+  };
+
+  const userId = parseInt(localStorage.getItem("userId"), 10); // Ensure userId is a number
+
+  // Log for debugging
+  console.log("Creator ID:", playlist.creatorId);
+  console.log("User ID:", userId);
 
   return (
     <>
@@ -70,6 +93,17 @@ function PlaylistPage({
               {formattedDate}
             </p>
           </div>
+          <div className="col">
+            {playlist.creatorId ===
+              parseInt(localStorage.getItem("userId")) && (
+              <Link
+                to={`/edit_playlist/${playlist.id}`}
+                className="btn btn-primary"
+              >
+                Edit Playlist
+              </Link>
+            )}
+          </div>
         </div>
 
         <h3>Songs in Playlist</h3>
@@ -81,6 +115,10 @@ function PlaylistPage({
                 return (
                   <li key={songId} className="list-group-item">
                     <p>Song not found</p>
+                    <br />
+                    <Link to="/songfeed">
+                      <button className="add-comment-btn">Add Songs</button>
+                    </Link>
                   </li>
                 );
               }
