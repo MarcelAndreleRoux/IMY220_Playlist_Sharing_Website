@@ -88,7 +88,6 @@ export class App extends React.Component {
   }
 
   addNewPlaylist(newPlaylist) {
-    // Get the authenticated user's ID
     const userId = localStorage.getItem("userId");
 
     if (!userId) {
@@ -96,25 +95,26 @@ export class App extends React.Component {
       return;
     }
 
-    // Update global playlists
+    // Add new playlist to the global state
     this.setState((prevState) => ({
       playlists: [...prevState.playlists, newPlaylist],
     }));
 
-    // Find the authenticated user in the users array
+    // Update the authenticated user's playlists
     const updatedUsers = this.state.users.map((user) => {
       if (user.userId === parseInt(userId)) {
-        // Add the new playlist to the authenticated user's playlists
         return {
           ...user,
-          playlists: [...(user.playlists || []), newPlaylist],
+          playlists: [...(user.playlists || []), newPlaylist], // Add playlist to user's list
         };
       }
       return user;
     });
 
-    // Update the users state
-    this.setState({ users: updatedUsers });
+    // Update users state and sync with localStorage
+    this.setState({ users: updatedUsers }, () => {
+      localStorage.setItem("users", JSON.stringify(this.state.users));
+    });
   }
 
   addNewSong(newSong) {
@@ -128,7 +128,9 @@ export class App extends React.Component {
   }
 
   setUsers(updatedUsers) {
-    this.setState({ users: updatedUsers });
+    this.setState({ users: updatedUsers }, () => {
+      sessionStorage.setItem("users", JSON.stringify(updatedUsers));
+    });
   }
 
   setAuthenticatedUser(username, email, userId) {
@@ -136,17 +138,19 @@ export class App extends React.Component {
       authenticatedUser: { username, email, userId },
     });
 
-    localStorage.setItem(
-      "authenticatedUser",
-      JSON.stringify({ username, email, userId })
-    );
+    localStorage.setItem("userId", userId);
   }
 
   componentDidMount() {
-    const storedUser = localStorage.getItem("authenticatedUser");
+    const storedUser = localStorage.getItem("userId");
     if (storedUser) {
+      const users = JSON.parse(sessionStorage.getItem("users")) || [];
+      const authenticatedUser = users.find(
+        (user) => user.userId === parseInt(storedUser)
+      );
+
       this.setState({
-        authenticatedUser: JSON.parse(storedUser),
+        authenticatedUser,
       });
     }
   }

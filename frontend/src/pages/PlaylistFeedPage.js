@@ -17,7 +17,7 @@ export class PlaylistFeed extends React.Component {
       );
 
       if (!alreadyInPlaylists) {
-        // Update the user's playlist and setUsers
+        // Update the user's playlist
         const updatedUser = {
           ...currentUser,
           playlists: [
@@ -26,11 +26,16 @@ export class PlaylistFeed extends React.Component {
           ],
         };
 
+        // Update the users array immutably
         const updatedUsers = this.props.users.map((user) =>
           user.userId === parseInt(userId) ? updatedUser : user
         );
 
+        // Update users state
         this.props.setUsers(updatedUsers);
+
+        // Save updated user back to localStorage (if applicable)
+        sessionStorage.setItem("users", JSON.stringify(updatedUsers));
       } else {
         alert("Playlist is already in your personal playlists.");
       }
