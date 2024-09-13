@@ -51,10 +51,6 @@ function PlaylistPage({
 
   const userId = parseInt(localStorage.getItem("userId"), 10); // Ensure userId is a number
 
-  // Log for debugging
-  console.log("Creator ID:", playlist.creatorId);
-  console.log("User ID:", userId);
-
   return (
     <>
       <NavBar />
@@ -94,8 +90,7 @@ function PlaylistPage({
             </p>
           </div>
           <div className="col">
-            {playlist.creatorId ===
-              parseInt(localStorage.getItem("userId")) && (
+            {playlist.creatorId === userId && (
               <Link
                 to={`/edit_playlist/${playlist.id}`}
                 className="btn btn-primary"
@@ -115,10 +110,6 @@ function PlaylistPage({
                 return (
                   <li key={songId} className="list-group-item">
                     <p>Song not found</p>
-                    <br />
-                    <Link to="/songfeed">
-                      <button className="add-comment-btn">Add Songs</button>
-                    </Link>
                   </li>
                 );
               }
@@ -153,6 +144,12 @@ function PlaylistPage({
         ) : (
           <p>No songs yet.</p>
         )}
+
+        <div className="button">
+          <Link to="/songfeed">
+            <button className="add-songs-btn">Add Songs</button>
+          </Link>
+        </div>
 
         <h3>Comments</h3>
         <div className="row">
@@ -206,6 +203,25 @@ function PlaylistPage({
           border-radius: 5px;
           background-color: #f9f9f9;
           height: 100%;
+        }
+
+        .add-songs-btn {
+          position: fixed;
+          bottom: 100px;
+          right: 20px;
+          background-color: #28a745;
+          color: white;
+          padding: 15px 20px;
+          border-radius: 50px;
+          text-align: center;
+          font-size: 18px;
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+          z-index: 1000;
+        }
+
+        .add-songs-btn:hover {
+          background-color: #218838;
+          text-decoration: none;
         }
 
         .add-comment-btn {

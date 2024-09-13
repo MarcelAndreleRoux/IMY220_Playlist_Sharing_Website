@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useParams, NavLink } from "react-router-dom";
-import { SpotifyEmbed } from "../components/SpotifyEmbed";
+import SpotifyEmbed from "../components/SpotifyEmbed";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 import { NavBar } from "../components/NavBar";
 

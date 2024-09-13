@@ -3,14 +3,19 @@ import { useParams, Link } from "react-router-dom";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 import { NavBar } from "../components/NavBar";
 
-function PersonalPlaylists({ users }) {
-  // Call useParams() correctly to get the userId
+function PersonalPlaylists({ playlists, users }) {
+  // Call useParams() to get the userId
   const { userId } = useParams();
 
   // Find the current user based on userId
   const user = users.find((user) => user.userId === parseInt(userId));
 
-  if (!user || !user.playlists || user.playlists.length === 0) {
+  // Filter the playlists to only include those created by the current user
+  const userPlaylists = playlists.filter(
+    (playlist) => playlist.creatorId === parseInt(userId)
+  );
+
+  if (!user || userPlaylists.length === 0) {
     return (
       <>
         <NavBar />
@@ -26,7 +31,7 @@ function PersonalPlaylists({ users }) {
       <div className="container mt-5">
         <h2>{user.username}'s Playlists</h2>
         <div className="row">
-          {user.playlists.map((playlist) => (
+          {userPlaylists.map((playlist) => (
             <div key={playlist.id} className="col-md-4 mb-4">
               <div className="card">
                 <img

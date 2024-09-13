@@ -201,7 +201,12 @@ export class App extends React.Component {
       },
       {
         path: "/my_playlists/:userId",
-        element: <PersonalPlaylists users={users} />,
+        element: (
+          <PersonalPlaylists
+            playlists={this.state.playlists}
+            users={this.state.users}
+          />
+        ),
       },
       {
         path: "/addtoplaylist/:songid",
