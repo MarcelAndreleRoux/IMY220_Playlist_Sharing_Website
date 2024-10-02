@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export class SplashRegister extends React.Component {
   constructor(props) {
@@ -78,13 +78,13 @@ export class SplashRegister extends React.Component {
         </p>
         <div className="d-flex justify-content-between mb-3">
           <button className="btn btn-outline-primary">
-            <NavLink to="/login">Google</NavLink>
+            <Link to="/login">Google</Link>
           </button>
           <button className="btn btn-outline-info">
-            <NavLink to="/login">Twitter/X</NavLink>
+            <Link to="/login">Twitter/X</Link>
           </button>
           <button className="btn btn-outline-primary">
-            <NavLink to="/login">Facebook</NavLink>
+            <Link to="/login">Facebook</Link>
           </button>
         </div>
 
@@ -150,9 +150,9 @@ export class SplashRegister extends React.Component {
               Validate
             </button>
             {formValid && (
-              <NavLink to="/login" className="btn btn-primary ms-2">
+              <Link to="/login" className="btn btn-primary ms-2">
                 Sign Up
-              </NavLink>
+              </Link>
             )}
           </div>
         </form>
@@ -165,7 +165,7 @@ export class SplashRegister extends React.Component {
 
         <p className="mt-3">
           <small>
-            Already have an account? <NavLink to="/login">Log In</NavLink>
+            Already have an account? <Link to="/login">Log In</Link>
           </small>
         </p>
       </div>
