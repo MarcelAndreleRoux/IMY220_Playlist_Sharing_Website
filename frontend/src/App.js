@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { PlaylistProvider } from "./context/PlaylistContext";
 import { SplashPage } from "./pages/SplashPage";
 import SplashLogin from "./pages/SplashLogin";
-import { SplashRegister } from "./pages/SplashRegister";
+import SplashRegister from "./pages/SplashRegister";
 import { HomePage } from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import PlaylistPage from "./pages/PlaylistPage";
