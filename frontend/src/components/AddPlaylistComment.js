@@ -5,6 +5,7 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
   const { playlistid } = useParams();
   const [error, setError] = useState("");
   const [stars, setStars] = useState(0);
+  const [imagePreview, setImagePreview] = useState(null);
   const commentRef = useRef(null);
   const imageRef = useRef(null);
   const navigate = useNavigate();
@@ -16,9 +17,19 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
     return <p>User not found. Please log in.</p>;
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImagePreview(imageUrl);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const commentText = commentRef.current.value;
+    const commentText = commentRef.current.value.trim();
     const uploadedImage = imageRef.current.files[0];
 
     if (!commentText || stars === 0) {
@@ -37,7 +48,6 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
     // Find the playlist and add the comment
     const updatedPlaylists = playlists.map((playlist) => {
       if (playlist.id === parseInt(playlistid)) {
-        // Initialize comments array if it's undefined
         const comments = playlist.comments || [];
         return {
           ...playlist,
@@ -66,6 +76,7 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
             id="comment"
             ref={commentRef}
             rows="4"
+            placeholder="Write your comment here..."
             required
           />
         </div>
@@ -95,8 +106,20 @@ const AddPlaylistComment = ({ playlists, setPlaylists, users }) => {
             className="form-control"
             id="image"
             ref={imageRef}
+            onChange={handleImageChange}
           />
         </div>
+
+        {imagePreview && (
+          <div className="mb-3">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="img-thumbnail"
+              width="200px"
+            />
+          </div>
+        )}
 
         {error && <div className="alert alert-danger">{error}</div>}
 

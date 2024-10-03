@@ -3,8 +3,7 @@ import { PlaylistContext } from "../context/PlaylistContext";
 import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
-  const { users, setAuthenticatedUser } = useContext(PlaylistContext); // Should get a flat array now
-  console.log("Users from Context: ", users);
+  const { users, setAuthenticatedUser } = useContext(PlaylistContext);
 
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -22,16 +21,13 @@ const LoginForm = () => {
   const validateUserInput = async (e) => {
     e.preventDefault();
 
-    const email = emailRef.current.value.trim(); // Trim user input
-    const password = passwordRef.current.value.trim(); // Trim user input
+    const email = emailRef.current.value.trim();
+    const password = passwordRef.current.value.trim();
 
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-
-    console.log("Entered Email: ", email);
-    console.log("Entered Password: ", password);
 
     // Check if users is an array and has a valid length
     if (!Array.isArray(users) || users.length === 0) {

@@ -1,18 +1,39 @@
 // Song can be added to a new playlist or selected playlist
 
-import React from "react";
-import { useParams, NavLink } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import SpotifyEmbed from "../components/SpotifyEmbed";
-import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
-import { NavBar } from "../components/NavBar";
+import NavBar from "../components/NavBar";
+import { PlaylistContext } from "../context/PlaylistContext";
 
-const SongPage = ({ songs, users }) => {
+const SongPage = () => {
   const { songid } = useParams();
+  const { songs } = useContext(PlaylistContext);
   const song = songs.find((s) => s.id === parseInt(songid));
 
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+
   if (!song) {
-    return <div>Song not found</div>;
+    return (
+      <>
+        <NavBar />
+        <div>Song not found</div>
+      </>
+    );
   }
+
+  const handleLike = () => {
+    setLiked(true);
+    setDisliked(false);
+    // Here you can add more logic, such as updating the song rating in the context or database
+  };
+
+  const handleDislike = () => {
+    setDisliked(true);
+    setLiked(false);
+    // Here you can add more logic, such as updating the song rating in the context or database
+  };
 
   return (
     <>
@@ -41,21 +62,30 @@ const SongPage = ({ songs, users }) => {
 
         <SpotifyEmbed songLink={song.link} />
 
-        <NavLink
-          to={`/addtoplaylist/${song.id}`}
-          className="btn btn-primary mt-3"
-        >
+        <Link to={`/addtoplaylist/${song.id}`} className="btn btn-primary mt-3">
           Add to Playlist
-        </NavLink>
+        </Link>
 
         <div className="mt-3">
-          <button className="btn btn-success">Like</button>
-          <button className="btn btn-danger ms-2">Dislike</button>
+          <button
+            className={`btn ${liked ? "btn-success" : "btn-outline-success"}`}
+            onClick={handleLike}
+          >
+            {liked ? "Liked" : "Like"}
+          </button>
+          <button
+            className={`btn ms-2 ${
+              disliked ? "btn-danger" : "btn-outline-danger"
+            }`}
+            onClick={handleDislike}
+          >
+            {disliked ? "Disliked" : "Dislike"}
+          </button>
         </div>
 
-        <NavLink to="/songfeed" className="btn btn-secondary mt-3">
+        <Link to="/songfeed" className="btn btn-secondary mt-3">
           Back to Song List
-        </NavLink>
+        </Link>
       </div>
     </>
   );

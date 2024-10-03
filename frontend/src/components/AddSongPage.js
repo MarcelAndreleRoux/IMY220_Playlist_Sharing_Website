@@ -1,7 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PlaylistContext } from "../context/PlaylistContext";
 
-const AddSongPage = ({ songs, addNewSong }) => {
+const AddSongPage = () => {
+  const { songs = [], addNewSong } = useContext(PlaylistContext);
+
   const nameRef = useRef(null);
   const artistRef = useRef(null);
   const linkRef = useRef(null);
@@ -47,6 +50,12 @@ const AddSongPage = ({ songs, addNewSong }) => {
     // Add new song to the list
     addNewSong(newSong);
 
+    // Clear the form fields
+    nameRef.current.value = "";
+    artistRef.current.value = "";
+    linkRef.current.value = "";
+    genreRef.current.value = "";
+
     // Redirect to the song feed after submission
     navigate("/songfeed");
   };
@@ -57,7 +66,7 @@ const AddSongPage = ({ songs, addNewSong }) => {
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="name" className="form-label">
-            Song Name
+            Song Name <span className="text-danger">*</span>
           </label>
           <input
             type="text"
@@ -71,7 +80,7 @@ const AddSongPage = ({ songs, addNewSong }) => {
 
         <div className="mb-3">
           <label htmlFor="artist" className="form-label">
-            Artist
+            Artist <span className="text-danger">*</span>
           </label>
           <input
             type="text"
@@ -85,7 +94,7 @@ const AddSongPage = ({ songs, addNewSong }) => {
 
         <div className="mb-3">
           <label htmlFor="link" className="form-label">
-            Spotify Link
+            Spotify Link <span className="text-danger">*</span>
           </label>
           <input
             type="url"

@@ -1,28 +1,29 @@
-// where you can search for anything (song, playlits)
+import React, { useState } from "react";
 
-import React from "react";
+const SearchBar = ({ onSearch, placeholder }) => {
+  const [searchTerm, setSearchTerm] = useState("");
 
-export class SearchBar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    onSearch(value);
+  };
 
-  render() {
-    return (
-      <>
-        <div class="input-group flex-nowrap">
-          <span class="input-group-text" id="addon-wrapping">
-            Search
-          </span>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Username"
-            aria-label="Username"
-            aria-describedby="addon-wrapping"
-          />
-        </div>
-      </>
-    );
-  }
-}
+  return (
+    <div className="input-group mb-3">
+      <span className="input-group-text" id="addon-wrapping">
+        Search
+      </span>
+      <input
+        type="text"
+        className="form-control"
+        placeholder={placeholder}
+        aria-label="Search"
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
+    </div>
+  );
+};
+
+export default SearchBar;

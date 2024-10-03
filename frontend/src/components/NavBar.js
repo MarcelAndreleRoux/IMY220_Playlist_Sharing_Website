@@ -1,47 +1,41 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import DefaultProfileImage from "../../public/assets/images/profile_image_default.jpg";
 import SightLogo from "../../public/assets/images/Muzik_Full_Logo.png";
+import { PlaylistContext } from "../context/PlaylistContext";
 
-export class NavBar extends React.Component {
-  handleMyPlaylistsClick = (e) => {
-    const userId = localStorage.getItem("userId");
+const NavBar = () => {
+  const { authenticatedUser } = useContext(PlaylistContext);
+  const navigate = useNavigate();
 
-    if (userId == "undefined") {
-      // Prevent navigation
+  const handleMyPlaylistsClick = (e) => {
+    if (!authenticatedUser) {
       e.preventDefault();
-
-      // Display alert to user
       alert("You must be logged in to view your playlists.");
     }
   };
 
-  render() {
-    // Get the userId and user data from localStorage
-    const userId = localStorage.getItem("userId");
-    const userData = JSON.parse(localStorage.getItem("authenticatedUser"));
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    navigate("/login");
+  };
 
-    // Get the user's profile picture (use default if none)
-    const profilePic =
-      userData && userData.profilePic
-        ? userData.profilePic
-        : DefaultProfileImage;
+  const userId = authenticatedUser?.userId;
+  const profilePic = authenticatedUser?.profilePic || DefaultProfileImage;
 
-    return (
-      <nav>
-        <Link to="/home">
-          <img width="100px" src={SightLogo} alt="home_logo" />
-        </Link>
-        <Link to="/songfeed">Songs Feed</Link>
-        <Link to="/playlistfeed">Playlists Feed</Link>
+  return (
+    <nav>
+      <Link to="/home">
+        <img width="100px" src={SightLogo} alt="home_logo" />
+      </Link>
+      <Link to="/songfeed">Songs Feed</Link>
+      <Link to="/playlistfeed">Playlists Feed</Link>
 
-        <Link
-          to={`/my_playlists/${userId}`}
-          onClick={this.handleMyPlaylistsClick}
-        >
-          My Playlist
-        </Link>
+      <Link to={`/my_playlists/${userId}`} onClick={handleMyPlaylistsClick}>
+        My Playlist
+      </Link>
 
+      {authenticatedUser ? (
         <Link to={`/profile/${userId}`}>
           <img
             width="50px"
@@ -50,15 +44,19 @@ export class NavBar extends React.Component {
             className="rounded-circle"
           />
         </Link>
-
-        <Link
-          to="/login"
-          className="btn btn-danger"
-          onClick={() => localStorage.removeItem("userId")}
-        >
-          Logout
+      ) : (
+        <Link to="/login" className="btn btn-primary">
+          Login
         </Link>
-      </nav>
-    );
-  }
-}
+      )}
+
+      {authenticatedUser && (
+        <button className="btn btn-danger" onClick={handleLogout}>
+          Logout
+        </button>
+      )}
+    </nav>
+  );
+};
+
+export default NavBar;

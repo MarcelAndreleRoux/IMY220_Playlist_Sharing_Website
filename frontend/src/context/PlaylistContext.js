@@ -6,9 +6,9 @@ export const PlaylistContext = createContext();
 // Create a provider component
 export const PlaylistProvider = ({
   children,
-  songs: initialSongs,
-  playlists: initialPlaylists,
-  users: initialUsers,
+  songs: initialSongs = [],
+  playlists: initialPlaylists = [],
+  users: initialUsers = [],
 }) => {
   // State for songs, playlists, users, genres, and authenticatedUser
   const [songs, setSongs] = useState(initialSongs);
@@ -21,6 +21,10 @@ export const PlaylistProvider = ({
   const handleSetAuthenticatedUser = (username, email, userId) => {
     setAuthenticatedUser({ username, email, userId });
     localStorage.setItem("userId", userId);
+  };
+
+  const addNewSong = (newSong) => {
+    setSongs((prevSongs) => [...prevSongs, newSong]); // Add the new song to the global songs state
   };
 
   // Add a new playlist
@@ -109,6 +113,7 @@ export const PlaylistProvider = ({
         authenticatedUser,
         setAuthenticatedUser: handleSetAuthenticatedUser,
         addNewPlaylist,
+        addNewSong,
         addSongToPlaylist,
         removeSongFromPlaylist,
         updatePlaylistComments,

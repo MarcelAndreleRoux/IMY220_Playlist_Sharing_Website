@@ -1,8 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
+import { PlaylistContext } from "../context/PlaylistContext";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 
-const AddToPlaylistPage = ({ genres, addNewPlaylist, users, setUsers }) => {
+const AddToPlaylistPage = () => {
+  const { genres, addNewPlaylist, users, setUsers } =
+    useContext(PlaylistContext);
+
   const nameRef = useRef(null);
   const genreRef = useRef(null);
   const coverImageRef = useRef(null);

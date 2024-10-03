@@ -9,14 +9,14 @@ import ProfilePage from "./pages/ProfilePage";
 import PlaylistPage from "./pages/PlaylistPage";
 import PersonalPlaylists from "./pages/PersonalPlaylists";
 import SongPage from "./pages/SongPage";
-import AddToPlaylistPage from "./components/AddToPlaylistToFeed";
-import AddSongToPlaylistPage from "./components/AddSongToPlaylist";
+import AddSongToPlaylistPage from "./components/AddSongToPlaylistPage";
 import SongsFeedPage from "./pages/SongsFeedPage";
 import PlaylistFeedPage from "./pages/PlaylistFeedPage";
 import AddSongPage from "./components/AddSongPage";
-import EditProfile from "./components/EditProfile";
-import EditPlaylist from "./components/EditPlaylist";
+import EditProfile from "./pages/EditProfile";
+import EditPlaylist from "./pages/EditPlaylist";
 import AddPlaylistComment from "./components/AddPlaylistComment";
+import AddToPlaylistPage from "./components/AddToPlaylistPage";
 
 export class App extends React.Component {
   render() {
@@ -66,6 +66,10 @@ export class App extends React.Component {
       {
         path: "/playlistfeed",
         element: <PlaylistFeedPage />,
+      },
+      {
+        path: "/create_playlist",
+        element: <AddToPlaylistPage />,
       },
       {
         path: "/song/:songid",
