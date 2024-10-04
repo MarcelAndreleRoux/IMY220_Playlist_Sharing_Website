@@ -1,0 +1,14 @@
+name: docker-compose
+
+services:
+  db:
+    image: mongodb
+  web:
+    build: .
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - PORT=3000

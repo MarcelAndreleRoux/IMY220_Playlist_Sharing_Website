@@ -20,8 +20,5 @@ COPY . .
 # Ensure the PATH includes node_modules binaries
 ENV PATH /website/node_modules/.bin:$PATH
 
-# Expose the port the application will run on
-EXPOSE 3000
-
 # Start the application
 CMD ["npm", "start"]
