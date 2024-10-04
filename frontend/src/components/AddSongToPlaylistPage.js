@@ -9,7 +9,9 @@ const AddSongToPlaylistPage = () => {
   const { songid } = useParams();
   const navigate = useNavigate();
 
-  const selectedSong = songs?.find((song) => song.id === parseInt(songid));
+  const selectedSong = songs?.find(
+    (song) => song.id === songid || song.id === parseInt(songid)
+  );
 
   // If song is not found, show a message and navigate back
   if (!selectedSong) {

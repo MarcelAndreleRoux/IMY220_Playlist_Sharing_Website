@@ -61,9 +61,9 @@ export const App = () => {
         ]);
 
         // Set the state with fetched data
-        setSongs(songsData);
-        setPlaylists(playlistsData);
-        setUsers(usersData);
+        setSongs(songsData.songs);
+        setPlaylists(playlistsData.playlists);
+        setUsers(usersData.users);
         setLoading(false); // Set loading to false once data is fetched
       } catch (error) {
         // Catch any errors and log them

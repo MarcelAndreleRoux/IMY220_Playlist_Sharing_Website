@@ -16,6 +16,7 @@ export const HomePage = () => {
   const handleSearch = (searchTerm) => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
 
+    // Filter playlists
     const filteredPlaylists = playlists.filter((playlist) => {
       const playlistNameMatch = playlist.name
         .toLowerCase()
@@ -28,13 +29,22 @@ export const HomePage = () => {
 
       const creator = users.find((user) => user.userId === playlist.creatorId);
 
-      const creatorNameMatch = creator.username
+      const creatorNameMatch = creator?.username
         ?.toLowerCase()
         .includes(lowercasedSearchTerm);
 
       return playlistNameMatch || hashtagsMatch || creatorNameMatch;
     });
 
+    // Filter songs
+    const filteredSongs = songs.filter((song) => {
+      return (
+        song.name.toLowerCase().includes(lowercasedSearchTerm) ||
+        song.artist.toLowerCase().includes(lowercasedSearchTerm)
+      );
+    });
+
+    // Update the filtered results
     setFilteredResults({ songs: filteredSongs, playlists: filteredPlaylists });
   };
 
@@ -73,18 +83,22 @@ export const HomePage = () => {
                 <div className="card">
                   <Link to={`/playlist/${playlist.id}`}>
                     <img
-                      src={playlist.coverImage || DefaultImage}
+                      src={playlist.coverImage}
                       className="card-img-top"
                       alt={playlist.name}
                       style={{ height: "200px", objectFit: "cover" }}
                     />
+
+                    <div className="card-body">
+                      <h5 className="card-title">{playlist.name}</h5>
+                      <p className="card-text">
+                        Created by:
+                        {users.find(
+                          (user) => user.userId === playlist.creatorId
+                        )?.username || "Unknown"}
+                      </p>
+                    </div>
                   </Link>
-                  <div className="card-body">
-                    <h5 className="card-title">{playlist.name}</h5>
-                    <p className="card-text">
-                      Created by: {playlist.creatorName}
-                    </p>
-                  </div>
                 </div>
               </div>
             ))

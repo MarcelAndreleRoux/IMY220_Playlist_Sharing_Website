@@ -7,10 +7,10 @@ const SongsInPlaylist = ({ songs, removeSongFromPlaylist }) => {
       <h3>Songs in Playlist</h3>
       {songs && songs.length > 0 ? (
         <ul className="list-group mb-5">
-          {songs.map((song) => {
+          {songs.map((song, index) => {
             if (!song) {
               return (
-                <li key={song.id} className="list-group-item">
+                <li key={index} className="list-group-item">
                   <p>Song not found</p>
                 </li>
               );

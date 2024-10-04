@@ -394,7 +394,7 @@ app["delete"]("/api/users/:id", /*#__PURE__*/function () {
 // GET: Retrieve all songs
 app.get("/api/songs", /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(req, res) {
-    var results;
+    var results, songsCount;
     return _regeneratorRuntime().wrap(function _callee6$(_context6) {
       while (1) switch (_context6.prev = _context6.next) {
         case 0:
@@ -403,20 +403,25 @@ app.get("/api/songs", /*#__PURE__*/function () {
           return runFindQuery("songs", {}, {});
         case 3:
           results = _context6.sent;
-          res.json(results);
-          _context6.next = 10;
+          // Count the number of songs
+          songsCount = results.length; // Respond with the count and the list of songs
+          res.json({
+            count: songsCount,
+            songs: results
+          });
+          _context6.next = 11;
           break;
-        case 7:
-          _context6.prev = 7;
+        case 8:
+          _context6.prev = 8;
           _context6.t0 = _context6["catch"](0);
           res.status(500).json({
             message: _context6.t0.message
           });
-        case 10:
+        case 11:
         case "end":
           return _context6.stop();
       }
-    }, _callee6, null, [[0, 7]]);
+    }, _callee6, null, [[0, 8]]);
   }));
   return function (_x21, _x22) {
     return _ref6.apply(this, arguments);
@@ -600,7 +605,7 @@ app["delete"]("/api/songs/:id", /*#__PURE__*/function () {
 // GET: Retrieve all playlists
 app.get("/api/playlists", /*#__PURE__*/function () {
   var _ref11 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(req, res) {
-    var results;
+    var results, playlistsCount;
     return _regeneratorRuntime().wrap(function _callee11$(_context11) {
       while (1) switch (_context11.prev = _context11.next) {
         case 0:
@@ -609,21 +614,26 @@ app.get("/api/playlists", /*#__PURE__*/function () {
           return runFindQuery("playlists", {}, {});
         case 3:
           results = _context11.sent;
-          res.json(results);
-          _context11.next = 11;
+          // Count the number of songs
+          playlistsCount = results.length; // Respond with the count and the list of songs
+          res.json({
+            count: playlistsCount,
+            playlists: results
+          });
+          _context11.next = 12;
           break;
-        case 7:
-          _context11.prev = 7;
+        case 8:
+          _context11.prev = 8;
           _context11.t0 = _context11["catch"](0);
           console.error("Error retrieving playlists:", _context11.t0);
           res.status(500).json({
             message: _context11.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context11.stop();
       }
-    }, _callee11, null, [[0, 7]]);
+    }, _callee11, null, [[0, 8]]);
   }));
   return function (_x31, _x32) {
     return _ref11.apply(this, arguments);

@@ -26,11 +26,11 @@ const AddSongPage = () => {
       return;
     }
 
-    // Check if the song already exists
+    // Check if the song already exists (ignoring case and trimming)
     const songExists = songs.some(
       (song) =>
-        song.name.toLowerCase() === name.toLowerCase() &&
-        song.artist.toLowerCase() === artist.toLowerCase()
+        song.name.trim().toLowerCase() === name.toLowerCase() &&
+        song.artist.trim().toLowerCase() === artist.toLowerCase()
     );
 
     if (songExists) {
@@ -40,7 +40,7 @@ const AddSongPage = () => {
 
     // Create new song object
     const newSong = {
-      id: Date.now(),
+      id: Date.now(), // Temporary unique ID
       name,
       artist,
       link,

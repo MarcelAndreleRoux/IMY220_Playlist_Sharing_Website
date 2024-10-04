@@ -188,7 +188,12 @@ app.delete("/api/users/:id", async (req, res) => {
 app.get("/api/songs", async (req, res) => {
   try {
     const results = await runFindQuery("songs", {}, {});
-    res.json(results);
+
+    // Count the number of songs
+    const songsCount = results.length;
+
+    // Respond with the count and the list of songs
+    res.json({ count: songsCount, songs: results });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -269,7 +274,12 @@ app.delete("/api/songs/:id", async (req, res) => {
 app.get("/api/playlists", async (req, res) => {
   try {
     const results = await runFindQuery("playlists", {}, {});
-    res.json(results);
+
+    // Count the number of songs
+    const playlistsCount = results.length;
+
+    // Respond with the count and the list of songs
+    res.json({ count: playlistsCount, playlists: results });
   } catch (error) {
     console.error("Error retrieving playlists:", error);
     res.status(500).json({ message: error.message });
