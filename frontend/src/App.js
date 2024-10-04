@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { PlaylistProvider } from "./context/PlaylistContext";
 import { SplashPage } from "./pages/SplashPage";
@@ -18,85 +18,146 @@ import EditPlaylist from "./pages/EditPlaylist";
 import AddPlaylistComment from "./components/AddPlaylistComment";
 import AddToPlaylistPage from "./components/AddToPlaylistPage";
 
-export class App extends React.Component {
-  render() {
-    const { songs, playlists, users } = this.props;
+export const App = () => {
+  const [songs, setSongs] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const router = createBrowserRouter([
-      {
-        path: "/",
-        element: <SplashPage />,
-      },
-      {
-        path: "/login",
-        element: <SplashLogin />,
-      },
-      {
-        path: "/register",
-        element: <SplashRegister />,
-      },
-      {
-        path: "/home",
-        element: <HomePage />,
-      },
-      {
-        path: "/profile/:userid",
-        element: <ProfilePage />,
-      },
-      {
-        path: "/edit_profile/:userid",
-        element: <EditProfile />,
-      },
-      {
-        path: "/playlist/:playlistid",
-        element: <PlaylistPage />,
-      },
-      {
-        path: "/my_playlists/:userId",
-        element: <PersonalPlaylists />,
-      },
-      {
-        path: "/addtoplaylist/:songid",
-        element: <AddSongToPlaylistPage />,
-      },
-      {
-        path: "/songfeed",
-        element: <SongsFeedPage />,
-      },
-      {
-        path: "/playlistfeed",
-        element: <PlaylistFeedPage />,
-      },
-      {
-        path: "/create_playlist",
-        element: <AddToPlaylistPage />,
-      },
-      {
-        path: "/song/:songid",
-        element: <SongPage />,
-      },
-      {
-        path: "/addsong",
-        element: <AddSongPage />,
-      },
-      {
-        path: "/edit_playlist/:playlistid",
-        element: <EditPlaylist />,
-      },
-      {
-        path: "/addcomment/:playlistid",
-        element: <AddPlaylistComment />,
-      },
-      {
-        path: "*",
-        element: <div>404 Error - Page Not Found</div>,
-      },
-    ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch songs, playlists, and users concurrently
+        const [songsResponse, playlistsResponse, usersResponse] =
+          await Promise.all([
+            fetch("/api/songs", { method: "GET" }),
+            fetch("/api/playlists", { method: "GET" }),
+            fetch("/api/users", { method: "GET" }),
+          ]);
 
-    return (
-      <PlaylistProvider songs={songs} playlists={playlists} users={users}>
-        <RouterProvider router={router} />
-      </PlaylistProvider>
-    );
+        // Check for errors in the songs API call
+        if (!songsResponse.ok) {
+          throw new Error(`Error fetching songs: ${songsResponse.statusText}`);
+        }
+
+        // Check for errors in the playlists API call
+        if (!playlistsResponse.ok) {
+          throw new Error(
+            `Error fetching playlists: ${playlistsResponse.statusText}`
+          );
+        }
+
+        // Check for errors in the users API call
+        if (!usersResponse.ok) {
+          throw new Error(`Error fetching users: ${usersResponse.statusText}`);
+        }
+
+        // Parse the JSON responses
+        const [songsData, playlistsData, usersData] = await Promise.all([
+          songsResponse.json(),
+          playlistsResponse.json(),
+          usersResponse.json(),
+        ]);
+
+        // Set the state with fetched data
+        setSongs(songsData);
+        setPlaylists(playlistsData);
+        setUsers(usersData);
+        setLoading(false); // Set loading to false once data is fetched
+      } catch (error) {
+        // Catch any errors and log them
+        console.error("Error fetching data:", error);
+        setError(`Failed to fetch data: ${error.message}`);
+        setLoading(false); // Stop loading even if there’s an error
+      }
+    };
+
+    fetchData(); // Call the async function inside useEffect
+  }, []);
+
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <SplashPage />,
+    },
+    {
+      path: "/login",
+      element: <SplashLogin />,
+    },
+    {
+      path: "/register",
+      element: <SplashRegister />,
+    },
+    {
+      path: "/home",
+      element: <HomePage />,
+    },
+    {
+      path: "/profile/:userid",
+      element: <ProfilePage />,
+    },
+    {
+      path: "/edit_profile/:userid",
+      element: <EditProfile />,
+    },
+    {
+      path: "/playlist/:playlistid",
+      element: <PlaylistPage />,
+    },
+    {
+      path: "/my_playlists/:userId",
+      element: <PersonalPlaylists />,
+    },
+    {
+      path: "/addtoplaylist/:songid",
+      element: <AddSongToPlaylistPage />,
+    },
+    {
+      path: "/songfeed",
+      element: <SongsFeedPage />,
+    },
+    {
+      path: "/playlistfeed",
+      element: <PlaylistFeedPage />,
+    },
+    {
+      path: "/create_playlist",
+      element: <AddToPlaylistPage />,
+    },
+    {
+      path: "/song/:songid",
+      element: <SongPage />,
+    },
+    {
+      path: "/addsong",
+      element: <AddSongPage />,
+    },
+    {
+      path: "/edit_playlist/:playlistid",
+      element: <EditPlaylist />,
+    },
+    {
+      path: "/addcomment/:playlistid",
+      element: <AddPlaylistComment />,
+    },
+    {
+      path: "*",
+      element: <div>404 Error - Page Not Found</div>,
+    },
+  ]);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
-}
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  return (
+    <PlaylistProvider songs={songs} playlists={playlists} users={users}>
+      <RouterProvider router={router} />
+    </PlaylistProvider>
+  );
+};

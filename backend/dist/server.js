@@ -25,16 +25,12 @@ var uri = "mongodb+srv://".concat(username, ":").concat(password, "@imy220.f7q7o
 // Create a new MongoClient
 var client = new _mongodb.MongoClient(uri);
 var dbName = "IMY200_Project";
-
-// --------------------------------------------------- CRUD ---------------------------------------------------
-
+function connectToMongoDB() {
+  return _connectToMongoDB.apply(this, arguments);
+} // --------------------------------------------------- CRUD ---------------------------------------------------
 // CREATE
-function runInsertQuery(_x, _x2) {
-  return _runInsertQuery.apply(this, arguments);
-} // READ
-function _runInsertQuery() {
-  _runInsertQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17(collectionName, document) {
-    var database, collection, result;
+function _connectToMongoDB() {
+  _connectToMongoDB = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
     return _regeneratorRuntime().wrap(function _callee17$(_context17) {
       while (1) switch (_context17.prev = _context17.next) {
         case 0:
@@ -42,24 +38,48 @@ function _runInsertQuery() {
           _context17.next = 3;
           return client.connect();
         case 3:
-          database = client.db(dbName);
-          collection = database.collection(collectionName);
-          _context17.next = 7;
-          return collection.insertOne(document);
-        case 7:
-          result = _context17.sent;
-          return _context17.abrupt("return", result);
+          console.log("Connected to MongoDB");
+          _context17.next = 9;
+          break;
+        case 6:
+          _context17.prev = 6;
+          _context17.t0 = _context17["catch"](0);
+          console.log("Error connecting to MongoDB", _context17.t0);
         case 9:
-          _context17.prev = 9;
-          _context17.next = 12;
-          return client.close();
-        case 12:
-          return _context17.finish(9);
-        case 13:
         case "end":
           return _context17.stop();
       }
-    }, _callee17, null, [[0,, 9, 13]]);
+    }, _callee17, null, [[0, 6]]);
+  }));
+  return _connectToMongoDB.apply(this, arguments);
+}
+function runInsertQuery(_x, _x2) {
+  return _runInsertQuery.apply(this, arguments);
+} // READ
+function _runInsertQuery() {
+  _runInsertQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18(collectionName, document) {
+    var database, collection, result;
+    return _regeneratorRuntime().wrap(function _callee18$(_context18) {
+      while (1) switch (_context18.prev = _context18.next) {
+        case 0:
+          _context18.prev = 0;
+          database = client.db(dbName);
+          collection = database.collection(collectionName);
+          _context18.next = 5;
+          return collection.insertOne(document);
+        case 5:
+          result = _context18.sent;
+          return _context18.abrupt("return", result);
+        case 9:
+          _context18.prev = 9;
+          _context18.t0 = _context18["catch"](0);
+          console.error("Error fetching from ".concat(collectionName, ":"), _context18.t0);
+          throw _context18.t0;
+        case 13:
+        case "end":
+          return _context18.stop();
+      }
+    }, _callee18, null, [[0, 9]]);
   }));
   return _runInsertQuery.apply(this, arguments);
 }
@@ -67,33 +87,29 @@ function runFindQuery(_x3, _x4, _x5) {
   return _runFindQuery.apply(this, arguments);
 } // UPDATE
 function _runFindQuery() {
-  _runFindQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18(collectionName, query, options) {
+  _runFindQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19(collectionName, query, options) {
     var database, collection, cursor;
-    return _regeneratorRuntime().wrap(function _callee18$(_context18) {
-      while (1) switch (_context18.prev = _context18.next) {
+    return _regeneratorRuntime().wrap(function _callee19$(_context19) {
+      while (1) switch (_context19.prev = _context19.next) {
         case 0:
-          _context18.prev = 0;
-          _context18.next = 3;
-          return client.connect();
-        case 3:
+          _context19.prev = 0;
           database = client.db(dbName);
           collection = database.collection(collectionName);
           cursor = collection.find(query, options);
-          _context18.next = 8;
+          _context19.next = 6;
           return cursor.toArray();
-        case 8:
-          return _context18.abrupt("return", _context18.sent);
+        case 6:
+          return _context19.abrupt("return", _context19.sent);
         case 9:
-          _context18.prev = 9;
-          _context18.next = 12;
-          return client.close();
-        case 12:
-          return _context18.finish(9);
+          _context19.prev = 9;
+          _context19.t0 = _context19["catch"](0);
+          console.error("Error fetching from ".concat(collectionName, ":"), _context19.t0);
+          throw _context19.t0;
         case 13:
         case "end":
-          return _context18.stop();
+          return _context19.stop();
       }
-    }, _callee18, null, [[0,, 9, 13]]);
+    }, _callee19, null, [[0, 9]]);
   }));
   return _runFindQuery.apply(this, arguments);
 }
@@ -101,75 +117,68 @@ function runUpdateQuery(_x6, _x7, _x8) {
   return _runUpdateQuery.apply(this, arguments);
 } // DELETE
 function _runUpdateQuery() {
-  _runUpdateQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19(collectionName, filter, updateDoc) {
-    var database, collection, result;
-    return _regeneratorRuntime().wrap(function _callee19$(_context19) {
-      while (1) switch (_context19.prev = _context19.next) {
-        case 0:
-          _context19.prev = 0;
-          _context19.next = 3;
-          return client.connect();
-        case 3:
-          database = client.db(dbName);
-          collection = database.collection(collectionName);
-          _context19.next = 7;
-          return collection.updateOne(filter, updateDoc);
-        case 7:
-          result = _context19.sent;
-          return _context19.abrupt("return", result);
-        case 9:
-          _context19.prev = 9;
-          _context19.next = 12;
-          return client.close();
-        case 12:
-          return _context19.finish(9);
-        case 13:
-        case "end":
-          return _context19.stop();
-      }
-    }, _callee19, null, [[0,, 9, 13]]);
-  }));
-  return _runUpdateQuery.apply(this, arguments);
-}
-function runDeleteQuery(_x9, _x10) {
-  return _runDeleteQuery.apply(this, arguments);
-} // ---------------------------------------------- API Routes ---------------------------------------------
-// ---------------------------- USERS ------------------------------
-// GET: Retrieve all users
-function _runDeleteQuery() {
-  _runDeleteQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20(collectionName, filter) {
+  _runUpdateQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20(collectionName, filter, updateDoc) {
     var database, collection, result;
     return _regeneratorRuntime().wrap(function _callee20$(_context20) {
       while (1) switch (_context20.prev = _context20.next) {
         case 0:
           _context20.prev = 0;
-          _context20.next = 3;
-          return client.connect();
-        case 3:
           database = client.db(dbName);
           collection = database.collection(collectionName);
-          _context20.next = 7;
-          return collection.deleteOne(filter);
-        case 7:
+          _context20.next = 5;
+          return collection.updateOne(filter, updateDoc);
+        case 5:
           result = _context20.sent;
           return _context20.abrupt("return", result);
         case 9:
           _context20.prev = 9;
-          _context20.next = 12;
-          return client.close();
-        case 12:
-          return _context20.finish(9);
+          _context20.t0 = _context20["catch"](0);
+          console.error("Error fetching from ".concat(collectionName, ":"), _context20.t0);
+          throw _context20.t0;
         case 13:
         case "end":
           return _context20.stop();
       }
-    }, _callee20, null, [[0,, 9, 13]]);
+    }, _callee20, null, [[0, 9]]);
+  }));
+  return _runUpdateQuery.apply(this, arguments);
+}
+function runDeleteQuery(_x9, _x10) {
+  return _runDeleteQuery.apply(this, arguments);
+} //Adding custom user id
+// ---------------------------------------------- API Routes ---------------------------------------------
+// ---------------------------- USERS ------------------------------
+// GET: Retrieve all users
+function _runDeleteQuery() {
+  _runDeleteQuery = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21(collectionName, filter) {
+    var database, collection, result;
+    return _regeneratorRuntime().wrap(function _callee21$(_context21) {
+      while (1) switch (_context21.prev = _context21.next) {
+        case 0:
+          _context21.prev = 0;
+          database = client.db(dbName);
+          collection = database.collection(collectionName);
+          _context21.next = 5;
+          return collection.deleteOne(filter);
+        case 5:
+          result = _context21.sent;
+          return _context21.abrupt("return", result);
+        case 9:
+          _context21.prev = 9;
+          _context21.t0 = _context21["catch"](0);
+          console.error("Error fetching from ".concat(collectionName, ":"), _context21.t0);
+          throw _context21.t0;
+        case 13:
+        case "end":
+          return _context21.stop();
+      }
+    }, _callee21, null, [[0, 9]]);
   }));
   return _runDeleteQuery.apply(this, arguments);
 }
 app.get("/api/users", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res) {
-    var results;
+    var results, userCount;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -178,20 +187,26 @@ app.get("/api/users", /*#__PURE__*/function () {
           return runFindQuery("users", {}, {});
         case 3:
           results = _context.sent;
-          res.json(results);
-          _context.next = 10;
+          // Count the number of users
+          userCount = results.length; // Respond with the count and the list of users
+          res.json({
+            count: userCount,
+            users: results
+          });
+          _context.next = 12;
           break;
-        case 7:
-          _context.prev = 7;
+        case 8:
+          _context.prev = 8;
           _context.t0 = _context["catch"](0);
+          console.error("Error retrieving users:", _context.t0);
           res.status(500).json({
             message: _context.t0.message
           });
-        case 10:
+        case 12:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 7]]);
+    }, _callee, null, [[0, 8]]);
   }));
   return function (_x11, _x12) {
     return _ref.apply(this, arguments);
@@ -208,26 +223,31 @@ app.post("/api/users", /*#__PURE__*/function () {
           _context2.prev = 0;
           newUser = req.body;
           _context2.next = 4;
-          return runInsertQuery("users", newUser);
+          return getNextSequenceValue("userId");
         case 4:
+          newUser.userId = _context2.sent;
+          _context2.next = 7;
+          return runInsertQuery("users", newUser);
+        case 7:
           result = _context2.sent;
           res.status(201).json({
             message: "User added!",
             result: result
           });
-          _context2.next = 11;
+          _context2.next = 15;
           break;
-        case 8:
-          _context2.prev = 8;
+        case 11:
+          _context2.prev = 11;
           _context2.t0 = _context2["catch"](0);
+          console.error("Error posting users:", _context2.t0);
           res.status(400).json({
             message: _context2.t0.message
           });
-        case 11:
+        case 15:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 8]]);
+    }, _callee2, null, [[0, 11]]);
   }));
   return function (_x13, _x14) {
     return _ref2.apply(this, arguments);
@@ -256,15 +276,16 @@ app.get("/api/users/:id", /*#__PURE__*/function () {
           } else {
             res.json(results[0]);
           }
-          _context3.next = 11;
+          _context3.next = 12;
           break;
         case 8:
           _context3.prev = 8;
           _context3.t0 = _context3["catch"](0);
+          console.error("Error retrieving user:", _context3.t0);
           res.status(500).json({
             message: _context3.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context3.stop();
       }
@@ -303,15 +324,16 @@ app.patch("/api/users/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context4.next = 12;
+          _context4.next = 13;
           break;
         case 9:
           _context4.prev = 9;
           _context4.t0 = _context4["catch"](0);
+          console.error("Error patching user:", _context4.t0);
           res.status(400).json({
             message: _context4.t0.message
           });
-        case 12:
+        case 13:
         case "end":
           return _context4.stop();
       }
@@ -347,15 +369,16 @@ app["delete"]("/api/users/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context5.next = 11;
+          _context5.next = 12;
           break;
         case 8:
           _context5.prev = 8;
           _context5.t0 = _context5["catch"](0);
+          console.error("Error deleting users:", _context5.t0);
           res.status(500).json({
             message: _context5.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context5.stop();
       }
@@ -417,15 +440,16 @@ app.post("/api/songs", /*#__PURE__*/function () {
             message: "Song added!",
             result: result
           });
-          _context7.next = 11;
+          _context7.next = 12;
           break;
         case 8:
           _context7.prev = 8;
           _context7.t0 = _context7["catch"](0);
+          console.error("Error posting song:", _context7.t0);
           res.status(400).json({
             message: _context7.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context7.stop();
       }
@@ -458,15 +482,16 @@ app.get("/api/songs/:id", /*#__PURE__*/function () {
           } else {
             res.json(result[0]);
           }
-          _context8.next = 11;
+          _context8.next = 12;
           break;
         case 8:
           _context8.prev = 8;
           _context8.t0 = _context8["catch"](0);
+          console.error("Error retrieving song:", _context8.t0);
           res.status(500).json({
             message: _context8.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context8.stop();
       }
@@ -505,15 +530,16 @@ app.patch("/api/songs/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context9.next = 12;
+          _context9.next = 13;
           break;
         case 9:
           _context9.prev = 9;
           _context9.t0 = _context9["catch"](0);
+          console.error("Error patching song:", _context9.t0);
           res.status(400).json({
             message: _context9.t0.message
           });
-        case 12:
+        case 13:
         case "end":
           return _context9.stop();
       }
@@ -549,15 +575,16 @@ app["delete"]("/api/songs/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context10.next = 11;
+          _context10.next = 12;
           break;
         case 8:
           _context10.prev = 8;
           _context10.t0 = _context10["catch"](0);
+          console.error("Error deleting song:", _context10.t0);
           res.status(500).json({
             message: _context10.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context10.stop();
       }
@@ -583,15 +610,16 @@ app.get("/api/playlists", /*#__PURE__*/function () {
         case 3:
           results = _context11.sent;
           res.json(results);
-          _context11.next = 10;
+          _context11.next = 11;
           break;
         case 7:
           _context11.prev = 7;
           _context11.t0 = _context11["catch"](0);
+          console.error("Error retrieving playlists:", _context11.t0);
           res.status(500).json({
             message: _context11.t0.message
           });
-        case 10:
+        case 11:
         case "end":
           return _context11.stop();
       }
@@ -619,15 +647,16 @@ app.post("/api/playlists", /*#__PURE__*/function () {
             message: "Playlist added!",
             result: result
           });
-          _context12.next = 11;
+          _context12.next = 12;
           break;
         case 8:
           _context12.prev = 8;
           _context12.t0 = _context12["catch"](0);
+          console.error("Error posting playlists:", _context12.t0);
           res.status(400).json({
             message: _context12.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context12.stop();
       }
@@ -660,15 +689,16 @@ app.get("/api/playlists/:id", /*#__PURE__*/function () {
           } else {
             res.json(result[0]);
           }
-          _context13.next = 11;
+          _context13.next = 12;
           break;
         case 8:
           _context13.prev = 8;
           _context13.t0 = _context13["catch"](0);
+          console.error("Error retrieving playlist:", _context13.t0);
           res.status(500).json({
             message: _context13.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context13.stop();
       }
@@ -705,15 +735,16 @@ app.patch("/api/playlists/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context14.next = 12;
+          _context14.next = 13;
           break;
         case 9:
           _context14.prev = 9;
           _context14.t0 = _context14["catch"](0);
+          console.error("Error patching playlist:", _context14.t0);
           res.status(400).json({
             message: _context14.t0.message
           });
-        case 12:
+        case 13:
         case "end":
           return _context14.stop();
       }
@@ -749,15 +780,16 @@ app["delete"]("/api/playlists/:id", /*#__PURE__*/function () {
               result: result
             });
           }
-          _context15.next = 11;
+          _context15.next = 12;
           break;
         case 8:
           _context15.prev = 8;
           _context15.t0 = _context15["catch"](0);
+          console.error("Error deleting playlist:", _context15.t0);
           res.status(500).json({
             message: _context15.t0.message
           });
-        case 11:
+        case 12:
         case "end":
           return _context15.stop();
       }
@@ -773,22 +805,13 @@ app.listen(PORT, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntim
   return _regeneratorRuntime().wrap(function _callee16$(_context16) {
     while (1) switch (_context16.prev = _context16.next) {
       case 0:
-        _context16.prev = 0;
-        _context16.next = 3;
-        return client.connect();
+        _context16.next = 2;
+        return connectToMongoDB();
+      case 2:
+        console.log("Server is running on port: ".concat(PORT, " link: http://localhost:").concat(PORT, "/"));
       case 3:
-        console.log("Connected to MongoDB");
-        _context16.next = 9;
-        break;
-      case 6:
-        _context16.prev = 6;
-        _context16.t0 = _context16["catch"](0);
-        console.log("Error connecting to MongoDB", _context16.t0);
-      case 9:
-        console.log("Server is running on port: ".concat(PORT, " link: http://localhost:3000/"));
-      case 10:
       case "end":
         return _context16.stop();
     }
-  }, _callee16, null, [[0, 6]]);
+  }, _callee16);
 })));

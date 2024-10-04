@@ -1,7 +1,7 @@
 // server.js
 import express from "express";
 import cors from "cors";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 import "regenerator-runtime/runtime";
 
 const app = express();
@@ -23,62 +23,70 @@ const uri = `mongodb+srv://${username}:${password}@imy220.f7q7o.mongodb.net/?ret
 const client = new MongoClient(uri);
 const dbName = "IMY200_Project";
 
+async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.log("Error connecting to MongoDB", err);
+  }
+}
+
 // --------------------------------------------------- CRUD ---------------------------------------------------
 
 // CREATE
 async function runInsertQuery(collectionName, document) {
   try {
-    await client.connect();
     const database = client.db(dbName);
     const collection = database.collection(collectionName);
 
     const result = await collection.insertOne(document);
     return result;
-  } finally {
-    await client.close();
+  } catch (error) {
+    console.error(`Error fetching from ${collectionName}:`, error);
+    throw error;
   }
 }
 
 // READ
 async function runFindQuery(collectionName, query, options) {
   try {
-    await client.connect();
     const database = client.db(dbName);
     const collection = database.collection(collectionName);
 
     const cursor = collection.find(query, options);
-
     return await cursor.toArray();
-  } finally {
-    await client.close();
+  } catch (error) {
+    console.error(`Error fetching from ${collectionName}:`, error);
+    throw error;
   }
 }
 
 // UPDATE
 async function runUpdateQuery(collectionName, filter, updateDoc) {
   try {
-    await client.connect();
     const database = client.db(dbName);
     const collection = database.collection(collectionName);
 
     const result = await collection.updateOne(filter, updateDoc);
     return result;
-  } finally {
-    await client.close();
+  } catch (error) {
+    console.error(`Error fetching from ${collectionName}:`, error);
+    throw error;
   }
 }
 
 // DELETE
 async function runDeleteQuery(collectionName, filter) {
   try {
-    await client.connect();
     const database = client.db(dbName);
     const collection = database.collection(collectionName);
 
     const result = await collection.deleteOne(filter);
     return result;
-  } finally {
-    await client.close();
+  } catch (error) {
+    console.error(`Error fetching from ${collectionName}:`, error);
+    throw error;
   }
 }
 
@@ -99,6 +107,7 @@ app.get("/api/users", async (req, res) => {
     // Respond with the count and the list of users
     res.json({ count: userCount, users: results });
   } catch (error) {
+    console.error("Error retrieving users:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -112,6 +121,7 @@ app.post("/api/users", async (req, res) => {
 
     res.status(201).json({ message: "User added!", result });
   } catch (error) {
+    console.error("Error posting users:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -128,6 +138,7 @@ app.get("/api/users/:id", async (req, res) => {
       res.json(results[0]);
     }
   } catch (error) {
+    console.error("Error retrieving user:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -149,6 +160,7 @@ app.patch("/api/users/:id", async (req, res) => {
       res.json({ message: "User updated!", result });
     }
   } catch (error) {
+    console.error("Error patching user:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -165,6 +177,7 @@ app.delete("/api/users/:id", async (req, res) => {
       res.json({ message: "User deleted!", result });
     }
   } catch (error) {
+    console.error("Error deleting users:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -189,6 +202,7 @@ app.post("/api/songs", async (req, res) => {
 
     res.status(201).json({ message: "Song added!", result });
   } catch (error) {
+    console.error("Error posting song:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -205,6 +219,7 @@ app.get("/api/songs/:id", async (req, res) => {
       res.json(result[0]);
     }
   } catch (error) {
+    console.error("Error retrieving song:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -226,6 +241,7 @@ app.patch("/api/songs/:id", async (req, res) => {
       res.json({ message: "Song updated!", result });
     }
   } catch (error) {
+    console.error("Error patching song:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -242,6 +258,7 @@ app.delete("/api/songs/:id", async (req, res) => {
       res.json({ message: "Song deleted!", result });
     }
   } catch (error) {
+    console.error("Error deleting song:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -254,6 +271,7 @@ app.get("/api/playlists", async (req, res) => {
     const results = await runFindQuery("playlists", {}, {});
     res.json(results);
   } catch (error) {
+    console.error("Error retrieving playlists:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -266,6 +284,7 @@ app.post("/api/playlists", async (req, res) => {
 
     res.status(201).json({ message: "Playlist added!", result });
   } catch (error) {
+    console.error("Error posting playlists:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -282,6 +301,7 @@ app.get("/api/playlists/:id", async (req, res) => {
       res.json(result[0]);
     }
   } catch (error) {
+    console.error("Error retrieving playlist:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -302,6 +322,7 @@ app.patch("/api/playlists/:id", async (req, res) => {
       res.json({ message: "Playlist updated!", result });
     }
   } catch (error) {
+    console.error("Error patching playlist:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -318,20 +339,15 @@ app.delete("/api/playlists/:id", async (req, res) => {
       res.json({ message: "Playlist deleted!", result });
     }
   } catch (error) {
+    console.error("Error deleting playlist:", error);
     res.status(500).json({ message: error.message });
   }
 });
 
 // Start the server
 app.listen(PORT, async () => {
-  try {
-    await client.connect();
-    console.log("Connected to MongoDB");
-  } catch (err) {
-    console.log("Error connecting to MongoDB", err);
-  }
-
+  await connectToMongoDB();
   console.log(
-    `Server is running on port: ${PORT} link: http://localhost:3000/`
+    `Server is running on port: ${PORT} link: http://localhost:${PORT}/`
   );
 });
