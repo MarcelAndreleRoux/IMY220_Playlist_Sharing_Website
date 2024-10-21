@@ -17,7 +17,6 @@ export const PlaylistProvider = ({
   const [authenticatedUser, setAuthenticatedUser] = useState(null);
   const genres = ["Pop", "Rock", "Jazz", "Hip Hop", "Classical", "Country"];
 
-  // Function to handle authenticated user
   const handleSetAuthenticatedUser = (username, email, userId) => {
     setAuthenticatedUser({ username, email, userId });
     localStorage.setItem("userId", userId);

@@ -1,13 +1,26 @@
-Build docker image:
-docker build -t imy220-playlist-website .
+Install all dependencies:
+npm install
 
-Run docker image:
-docker run -p 3000:3000 imy220-playlist-website
+Run the docker compose:
+Run:
+docker compose up
+Stop:
+Ctrl + C
 
-Stop docker image:
-Ctrl + C in terminal
+Run docker (if needed):
+Build:
+docker build -t imy220-a6-website .
+Run:
+docker run -p 3000:3000 imy220-a6-website
+Stop:
+Ctrl + C
 
-MongoDB:
-connection_string: mongodb+srv://u22598805:someProjectpassword@imy220.f7q7o.mongodb.net/?retryWrites=true&w=majority&appName=IMY220
-username: u22598805
-password: someProjectpassword
+MongoDB (if needed):
+Username:
+u22598805
+Password:
+IMADETHIS1234
+URI Link:
+mongodb+srv://u22598805:IMADETHIS1234@imy220.f7q7o.mongodb.net/?retryWrites=true&w=majority&appName=IMY220
+Database Name:
+IMY200_Project

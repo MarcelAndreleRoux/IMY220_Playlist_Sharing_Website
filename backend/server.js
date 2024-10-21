@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.static("frontend/public"));
 
 const username = "u22598805";
-const password = "someProjectpassword";
+const password = "IMADETHIS1234";
 
 // MongoDB Connection URI
 const uri = `mongodb+srv://${username}:${password}@imy220.f7q7o.mongodb.net/?retryWrites=true&w=majority&appName=IMY220`;

@@ -1,0 +1,28 @@
+name: "u22598805"
+version: "1.0.0"
+services:
+  db:
+    image: mongo
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+
+  api:
+    build: .
+    container_name: react-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - MONGO_URI=mongodb://db:27017/IMY200_Project
+
+  frontend:
+    build: .
+    container_name: react-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
