@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import DefaultProfileImage from "../../public/assets/images/profile_image_default.jpg";
 import SightLogo from "../../public/assets/images/Muzik_Full_Logo.png";
 import { PlaylistContext } from "../context/PlaylistContext";
 
 const NavBar = () => {
-  const { authenticatedUser } = useContext(PlaylistContext);
+  const { authenticatedUser, setAuthenticatedUser } =
+    useContext(PlaylistContext);
   const navigate = useNavigate();
 
   const handleMyPlaylistsClick = (e) => {
@@ -16,12 +16,13 @@ const NavBar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("userId");
+    setAuthenticatedUser(null);
+    localStorage.removeItem("authenticatedUser");
     navigate("/login");
   };
 
   const userId = authenticatedUser?.userId;
-  const profilePic = authenticatedUser?.profilePic || DefaultProfileImage;
+  const profilePic = authenticatedUser?.profilePic;
 
   return (
     <nav>

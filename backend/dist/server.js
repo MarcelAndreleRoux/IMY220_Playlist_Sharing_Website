@@ -3,6 +3,7 @@
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 var _express = _interopRequireDefault(require("express"));
 var _cors = _interopRequireDefault(require("cors"));
+var _path = _interopRequireDefault(require("path"));
 var _mongodb = require("mongodb");
 require("regenerator-runtime/runtime");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
@@ -15,9 +16,9 @@ var PORT = process.env.PORT || 3000;
 // Middleware
 app.use((0, _cors["default"])());
 app.use(_express["default"].json());
-app.use(_express["default"]["static"]("frontend/public"));
+app.use(_express["default"]["static"]("./frontend/public"));
 var username = "u22598805";
-var password = "someProjectpassword";
+var password = "IMADETHIS1234";
 
 // MongoDB Connection URI
 var uri = "mongodb+srv://".concat(username, ":").concat(password, "@imy220.f7q7o.mongodb.net/?retryWrites=true&w=majority&appName=IMY220");
@@ -809,6 +810,9 @@ app["delete"]("/api/playlists/:id", /*#__PURE__*/function () {
     return _ref15.apply(this, arguments);
   };
 }());
+app.get("*", function (req, res) {
+  res.sendFile(_path["default"].resolve("./frontend/public/index.html"));
+});
 
 // Start the server
 app.listen(PORT, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {

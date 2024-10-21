@@ -1,6 +1,7 @@
 // server.js
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { MongoClient } from "mongodb";
 import "regenerator-runtime/runtime";
 
@@ -11,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static("frontend/public"));
+app.use(express.static("./frontend/public"));
 
 const username = "u22598805";
 const password = "IMADETHIS1234";
@@ -352,6 +353,10 @@ app.delete("/api/playlists/:id", async (req, res) => {
     console.error("Error deleting playlist:", error);
     res.status(500).json({ message: error.message });
   }
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve("./frontend/public/index.html"));
 });
 
 // Start the server

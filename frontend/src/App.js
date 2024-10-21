@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
+import { PlaylistContext } from "./context/PlaylistContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
 import { SplashPage } from "./pages/SplashPage";
 import SplashLogin from "./pages/SplashLogin";
@@ -76,6 +81,18 @@ export const App = () => {
     fetchData(); // Call the async function inside useEffect
   }, []);
 
+  const PrivateRoute = ({ element }) => {
+    const { authenticatedUser } = useContext(PlaylistContext);
+
+    if (!authenticatedUser) {
+      // If not authenticated, redirect to login
+      return <Navigate to="/login" replace />;
+    }
+
+    // If authenticated, render the requested page
+    return element;
+  };
+
   const router = createBrowserRouter([
     {
       path: "/",
@@ -91,7 +108,7 @@ export const App = () => {
     },
     {
       path: "/home",
-      element: <HomePage />,
+      element: <PrivateRoute element={<HomePage />} />,
     },
     {
       path: "/profile/:userid",

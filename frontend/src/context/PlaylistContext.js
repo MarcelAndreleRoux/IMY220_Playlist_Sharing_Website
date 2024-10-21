@@ -14,12 +14,17 @@ export const PlaylistProvider = ({
   const [songs, setSongs] = useState(initialSongs || []);
   const [playlists, setPlaylists] = useState(initialPlaylists || []);
   const [users, setUsers] = useState(initialUsers || []);
-  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+
+  const [authenticatedUser, setAuthenticatedUser] = useState(() => {
+    const user = localStorage.getItem("authenticatedUser");
+    return user ? JSON.parse(user) : null;
+  });
+
   const genres = ["Pop", "Rock", "Jazz", "Hip Hop", "Classical", "Country"];
 
-  const handleSetAuthenticatedUser = (username, email, userId) => {
-    setAuthenticatedUser({ username, email, userId });
-    localStorage.setItem("userId", userId);
+  const handleSetAuthenticatedUser = (user) => {
+    setAuthenticatedUser(user);
+    localStorage.setItem("authenticatedUser", JSON.stringify(user));
   };
 
   const addNewSong = (newSong) => {
