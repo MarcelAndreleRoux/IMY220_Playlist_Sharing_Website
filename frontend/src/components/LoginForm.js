@@ -29,7 +29,6 @@ const LoginForm = () => {
       return;
     }
 
-    // Check if users is an array and has a valid length
     if (!Array.isArray(users) || users.length === 0) {
       setError("No users found.");
       return;
@@ -42,8 +41,15 @@ const LoginForm = () => {
     );
 
     if (user) {
-      setAuthenticatedUser(user.username, user.email, user.userId);
-      localStorage.setItem("userId", user.userId);
+      // Exclude password
+      const { password, ...userWithoutPassword } = user;
+
+      // Set authenticated user
+      setAuthenticatedUser(userWithoutPassword);
+      localStorage.setItem(
+        "authenticatedUser",
+        JSON.stringify(userWithoutPassword)
+      );
 
       setSuccess("Login successful!");
       setError("");

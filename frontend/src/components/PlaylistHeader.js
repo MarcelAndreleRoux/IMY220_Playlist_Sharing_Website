@@ -1,47 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 
-const PlaylistHeader = ({ playlist, userId }) => {
-  const formattedDate = new Date(playlist.creationDate).toLocaleDateString();
+const PlaylistHeader = ({ playlist, userId, users }) => {
+  const creator = users.find((user) => user.userId === playlist.creatorId);
 
   return (
-    <div className="row">
-      <div className="col-4">
-        <img
-          src={playlist.coverImage || DefaultImage}
-          alt="Playlist Cover"
-          className="img-fluid mb-4"
-        />
-      </div>
-      <div className="col">
-        <h1>{playlist.name}</h1>
-        <p>{playlist.description}</p>
-        {playlist.hashtags && playlist.hashtags.length > 0 && (
-          <div>
-            <strong>Hashtags: </strong>
-            {playlist.hashtags.map((hashtag, index) => (
-              <span key={index} className="badge bg-secondary me-1">
-                {hashtag}
-              </span>
-            ))}
-          </div>
+    <div className="playlist-header">
+      <img
+        src={playlist.coverImage}
+        alt={playlist.name}
+        className="img-fluid mb-3"
+      />
+      <h2>{playlist.name}</h2>
+      <p>
+        Created by:{" "}
+        {creator ? (
+          <Link to={`/profile/${creator.username}`}>{creator.username}</Link>
+        ) : (
+          "Unknown Creator"
         )}
-        <p>
-          <strong>Created on: </strong>
-          {formattedDate}
-        </p>
-      </div>
-      <div className="col">
-        {playlist.creatorId === userId && (
-          <Link
-            to={`/edit_playlist/${playlist.id}`}
-            className="btn btn-primary"
-          >
-            Edit Playlist
-          </Link>
-        )}
-      </div>
+      </p>
+      {creator && creator.userId === userId && (
+        <Link to={`/edit_playlist/${playlist.id}`} className="btn btn-primary">
+          Edit Playlist
+        </Link>
+      )}
     </div>
   );
 };

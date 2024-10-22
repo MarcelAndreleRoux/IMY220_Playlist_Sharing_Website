@@ -822,7 +822,7 @@ app.listen(PORT, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntim
         _context16.next = 2;
         return connectToMongoDB();
       case 2:
-        console.log("Server is running on port: ".concat(PORT, " link: http://localhost:").concat(PORT, "/"));
+        console.log("Server is running on http://localhost:".concat(PORT, "/"));
       case 3:
       case "end":
         return _context16.stop();

@@ -47,8 +47,17 @@ const AddToPlaylistPage = () => {
     const description = descriptionRef.current.value;
     const hashtags = hashtagsRef.current.value;
 
-    const userId = localStorage.getItem("userId");
-    const currentUser = users.find((user) => user.userId === parseInt(userId));
+    // Extract authenticated user from localStorage
+    const authenticatedUser = JSON.parse(
+      localStorage.getItem("authenticatedUser")
+    );
+    const username = authenticatedUser?.username;
+
+    // Find the current user based on username
+    const currentUser = users.find((user) => user.username === username);
+
+    console.log("Authenticated User:", authenticatedUser); // Debugging
+    console.log("Current User:", currentUser); // Debugging
 
     if (!name || !genre) {
       setError("Please fill in all required fields (name and genre).");
@@ -56,60 +65,51 @@ const AddToPlaylistPage = () => {
       return;
     }
 
-    // Generate new playlist id based on the playlist count + 1
-    const newPlaylistId = playlistCount + 1;
-
-    // Create a new playlist object with the generated id
-    const newPlaylist = {
-      id: newPlaylistId,
-      name,
-      genre,
-      coverImage: coverImage || DefaultImage,
-      description: description || "No description provided.",
-      creatorId: parseInt(userId),
-      hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
-      creationDate: new Date().toISOString(),
-    };
-
     if (!currentUser) {
       setError("User not found.");
       setLoading(false);
       return;
     }
 
+    const newPlaylistId = playlistCount + 1;
+
+    const newPlaylist = {
+      id: newPlaylistId,
+      name,
+      genre,
+      coverImage: coverImage || DefaultImage,
+      description: description || "No description provided.",
+      creatorId: currentUser.userId,
+      hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
+      creationDate: new Date().toISOString(),
+    };
+
     try {
-      // Send POST request to the backend API to save the playlist
       const response = await fetch("/api/playlists", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newPlaylist),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save the playlist in the database");
+        throw new Error("Failed to save the playlist in the database.");
       }
 
       const savedPlaylist = await response.json();
 
-      // Add the saved playlist to the global playlist state
-      addNewPlaylist(savedPlaylist);
-
-      // Update user's playlists
       const updatedUser = {
         ...currentUser,
-        playlists: [...(currentUser.playlists || []), savedPlaylist],
+        playlists: [...(currentUser.playlists || []), savedPlaylist.id],
       };
 
       const updatedUsers = users.map((user) =>
-        user.userId === parseInt(userId) ? updatedUser : user
+        user.username === username ? updatedUser : user
       );
 
       setUsers(updatedUsers);
+      sessionStorage.setItem("users", JSON.stringify(updatedUsers));
 
-      // Navigate to playlist feed after playlist creation
-      navigate("/playlistfeed");
+      navigate(`/my_playlists/${username}`);
     } catch (err) {
       setError(err.message || "An error occurred while saving the playlist.");
     } finally {

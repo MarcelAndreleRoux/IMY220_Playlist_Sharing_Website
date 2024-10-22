@@ -18,7 +18,7 @@ const FriendsList = ({ users, currentUser }) => {
                 className="rounded-circle"
                 width="40"
               />
-              <Link to={`/profile/${friend.userId}`}>{friend.username}</Link>
+              <Link to={`/profile/${friend.username}`}>{friend.username}</Link>
             </li>
           ) : null;
         })}

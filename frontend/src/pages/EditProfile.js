@@ -6,30 +6,20 @@ import ProfileForm from "../components/ProfileForm";
 
 const EditProfile = () => {
   const { users, setUsers } = useContext(PlaylistContext);
-  const { userid } = useParams();
+  const { username } = useParams();
   const navigate = useNavigate();
 
-  const userIdFromStorage = localStorage.getItem("userId");
-  const userId = userid ? userid : userIdFromStorage;
-
-  const currentUser = users.find((user) => user.userId === parseInt(userId));
+  const currentUser = users.find((user) => user.username === username);
 
   const [profileData, setProfileData] = useState({
     username: currentUser?.username || "",
     email: currentUser?.email || "",
     password: "",
     confirmPassword: "",
-    profilePic: currentUser?.profilePic || DefaultProfileImage,
+    profilePic: currentUser?.profilePic,
   });
 
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!userId) {
-      alert("Please log in to edit your profile.");
-      navigate("/login");
-    }
-  }, [userId, navigate]);
 
   const handleSaveChanges = (updatedProfileData) => {
     if (updatedProfileData.password !== updatedProfileData.confirmPassword) {
@@ -38,7 +28,7 @@ const EditProfile = () => {
     }
 
     const updatedUsers = users.map((user) => {
-      if (user.userId === parseInt(userId)) {
+      if (user.username === username) {
         const updatedUser = {
           ...user,
           username: updatedProfileData.username,
@@ -50,7 +40,10 @@ const EditProfile = () => {
         };
 
         // Update the authenticated user in localStorage as well
-        localStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
+        localStorage.setItem(
+          "authenticatedUser",
+          JSON.stringify(updatedUser.username)
+        );
 
         return updatedUser;
       }
@@ -58,7 +51,7 @@ const EditProfile = () => {
     });
 
     setUsers(updatedUsers);
-    navigate(`/profile/${userId}`);
+    navigate(`/profile/${updatedProfileData.username}`);
   };
 
   return (

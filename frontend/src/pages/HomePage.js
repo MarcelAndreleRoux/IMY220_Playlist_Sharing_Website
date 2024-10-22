@@ -6,8 +6,7 @@ import SpotifyEmbed from "../components/SpotifyEmbed";
 import { Link } from "react-router-dom";
 
 export const HomePage = () => {
-  const { playlists, songs, users, authenticatedUser } =
-    useContext(PlaylistContext);
+  const { playlists, songs, users } = useContext(PlaylistContext);
   const [filteredResults, setFilteredResults] = useState({
     songs,
     playlists,
@@ -16,7 +15,6 @@ export const HomePage = () => {
   const handleSearch = (searchTerm) => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
 
-    // Filter playlists
     const filteredPlaylists = playlists.filter((playlist) => {
       const playlistNameMatch = playlist.name
         .toLowerCase()
@@ -36,15 +34,12 @@ export const HomePage = () => {
       return playlistNameMatch || hashtagsMatch || creatorNameMatch;
     });
 
-    // Filter songs
-    const filteredSongs = songs.filter((song) => {
-      return (
+    const filteredSongs = songs.filter(
+      (song) =>
         song.name.toLowerCase().includes(lowercasedSearchTerm) ||
         song.artist.toLowerCase().includes(lowercasedSearchTerm)
-      );
-    });
+    );
 
-    // Update the filtered results
     setFilteredResults({ songs: filteredSongs, playlists: filteredPlaylists });
   };
 
@@ -56,6 +51,7 @@ export const HomePage = () => {
           onSearch={handleSearch}
           placeholder="Search for Any Songs or Playlists..."
         />
+
         <div className="row mt-5">
           <h3>Songs</h3>
           {filteredResults.songs.length > 0 ? (
@@ -88,17 +84,20 @@ export const HomePage = () => {
                       alt={playlist.name}
                       style={{ height: "200px", objectFit: "cover" }}
                     />
-
-                    <div className="card-body">
-                      <h5 className="card-title">{playlist.name}</h5>
-                      <p className="card-text">
-                        Created by:
-                        {users.find(
-                          (user) => user.userId === playlist.creatorId
-                        )?.username || "Unknown"}
-                      </p>
-                    </div>
                   </Link>
+
+                  <div className="card-body">
+                    <h5 className="card-title">
+                      <Link to={`/playlist/${playlist.id}`}>
+                        {playlist.name}
+                      </Link>
+                    </h5>
+                    <p className="card-text">
+                      Created by:
+                      {users.find((user) => user.userId === playlist.creatorId)
+                        ?.username || "Unknown"}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))

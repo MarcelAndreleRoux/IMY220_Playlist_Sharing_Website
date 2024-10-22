@@ -1,27 +1,45 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import NavBar from "../components/NavBar";
+import { PlaylistContext } from "../context/PlaylistContext";
 import PlaylistCard from "../components/PlaylistCard";
 import NoPlaylistsMessage from "../components/NoPlaylistsMessage";
-import { PlaylistContext } from "../context/PlaylistContext";
 
 const PersonalPlaylists = () => {
-  const { userId } = useParams();
-  const { users, playlists } = useContext(PlaylistContext);
+  const { username } = useParams();
+  const { users, playlists, setUsers } = useContext(PlaylistContext);
+  const [userPlaylists, setUserPlaylists] = useState([]);
 
-  // Get the current user from users array
-  const user = users.find((user) => user.userId === parseInt(userId));
+  const currentUser = users.find((user) => user.username === username);
 
-  if (user && !user.playlists) {
-    user.playlists = [];
-  }
+  useEffect(() => {
+    if (currentUser) {
+      const filteredPlaylists = playlists.filter((playlist) =>
+        currentUser.playlists.includes(playlist.id)
+      );
+      setUserPlaylists(filteredPlaylists);
+    }
+  }, [currentUser, playlists]);
 
-  // If no user or no playlists, display NoPlaylistsMessage
-  if (!user || user.playlists.length === 0) {
+  const handleRemovePlaylist = (playlistId) => {
+    const updatedUser = {
+      ...currentUser,
+      playlists: currentUser.playlists.filter((id) => id !== playlistId),
+    };
+
+    const updatedUsers = users.map((user) =>
+      user.username === username ? updatedUser : user
+    );
+
+    setUsers(updatedUsers);
+    sessionStorage.setItem("users", JSON.stringify(updatedUsers));
+  };
+
+  if (!currentUser || userPlaylists.length === 0) {
     return (
       <>
         <NavBar />
-        <NoPlaylistsMessage />
+        <NoPlaylistsMessage message="No Playlists Found." />
       </>
     );
   }
@@ -30,18 +48,16 @@ const PersonalPlaylists = () => {
     <>
       <NavBar />
       <div className="container mt-5">
-        <h2>{user.username}'s Playlists</h2>
+        <h2>{currentUser.username}'s Playlists</h2>
         <div className="row">
-          {user.playlists.map((playlistId) => {
-            // Find the corresponding playlist details from the main playlists array
-            const playlist = playlists.find((pl) => pl.id === playlistId);
-
-            return playlist ? (
-              <div key={playlist.id}>
-                <PlaylistCard playlist={playlist} isPersonalView={true} />
-              </div>
-            ) : null;
-          })}
+          {userPlaylists.map((playlist) => (
+            <PlaylistCard
+              key={playlist.id}
+              playlist={playlist}
+              handleRemovePlaylist={handleRemovePlaylist}
+              isPersonalView={true}
+            />
+          ))}
         </div>
       </div>
     </>

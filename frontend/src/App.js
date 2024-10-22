@@ -84,12 +84,17 @@ export const App = () => {
   const PrivateRoute = ({ element }) => {
     const { authenticatedUser } = useContext(PlaylistContext);
 
+    // Wait until authenticatedUser state is determined
+    if (authenticatedUser === undefined) {
+      return <div>Loading...</div>;
+    }
+
+    // Redirect to login if not authenticated
     if (!authenticatedUser) {
-      // If not authenticated, redirect to login
       return <Navigate to="/login" replace />;
     }
 
-    // If authenticated, render the requested page
+    // Render the requested element if authenticated
     return element;
   };
 
@@ -111,52 +116,52 @@ export const App = () => {
       element: <PrivateRoute element={<HomePage />} />,
     },
     {
-      path: "/profile/:userid",
-      element: <ProfilePage />,
+      path: "/profile/:username",
+      element: <PrivateRoute element={<ProfilePage />} />,
     },
     {
-      path: "/edit_profile/:userid",
-      element: <EditProfile />,
+      path: "/edit_profile/:username",
+      element: <PrivateRoute element={<EditProfile />} />,
     },
     {
       path: "/playlist/:playlistid",
-      element: <PlaylistPage />,
+      element: <PrivateRoute element={<PlaylistPage />} />,
     },
     {
-      path: "/my_playlists/:userId",
-      element: <PersonalPlaylists />,
+      path: "/my_playlists/:username",
+      element: <PrivateRoute element={<PersonalPlaylists />} />,
     },
     {
       path: "/addtoplaylist/:songid",
-      element: <AddSongToPlaylistPage />,
+      element: <PrivateRoute element={<AddSongToPlaylistPage />} />,
     },
     {
       path: "/songfeed",
-      element: <SongsFeedPage />,
+      element: <PrivateRoute element={<SongsFeedPage />} />,
     },
     {
       path: "/playlistfeed",
-      element: <PlaylistFeedPage />,
+      element: <PrivateRoute element={<PlaylistFeedPage />} />,
     },
     {
       path: "/create_playlist",
-      element: <AddToPlaylistPage />,
+      element: <PrivateRoute element={<AddToPlaylistPage />} />,
     },
     {
       path: "/song/:songid",
-      element: <SongPage />,
+      element: <PrivateRoute element={<SongPage />} />,
     },
     {
       path: "/addsong",
-      element: <AddSongPage />,
+      element: <PrivateRoute element={<AddSongPage />} />,
     },
     {
       path: "/edit_playlist/:playlistid",
-      element: <EditPlaylist />,
+      element: <PrivateRoute element={<EditPlaylist />} />,
     },
     {
       path: "/addcomment/:playlistid",
-      element: <AddPlaylistComment />,
+      element: <PrivateRoute element={<AddPlaylistComment />} />,
     },
     {
       path: "*",

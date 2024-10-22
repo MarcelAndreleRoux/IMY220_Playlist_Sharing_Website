@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SightLogo from "../../public/assets/images/Muzik_Full_Logo.png";
 import { PlaylistContext } from "../context/PlaylistContext";
@@ -7,6 +7,11 @@ const NavBar = () => {
   const { authenticatedUser, setAuthenticatedUser } =
     useContext(PlaylistContext);
   const navigate = useNavigate();
+
+  // Debugging: Log the authenticatedUser
+  useEffect(() => {
+    console.log("Authenticated User: ", authenticatedUser);
+  }, [authenticatedUser]);
 
   const handleMyPlaylistsClick = (e) => {
     if (!authenticatedUser) {
@@ -21,7 +26,7 @@ const NavBar = () => {
     navigate("/login");
   };
 
-  const userId = authenticatedUser?.userId;
+  const username = authenticatedUser?.username;
   const profilePic = authenticatedUser?.profilePic;
 
   return (
@@ -32,12 +37,12 @@ const NavBar = () => {
       <Link to="/songfeed">Songs Feed</Link>
       <Link to="/playlistfeed">Playlists Feed</Link>
 
-      <Link to={`/my_playlists/${userId}`} onClick={handleMyPlaylistsClick}>
+      <Link to={`/my_playlists/${username}`} onClick={handleMyPlaylistsClick}>
         My Playlist
       </Link>
 
       {authenticatedUser ? (
-        <Link to={`/profile/${userId}`}>
+        <Link to={`/profile/${username}`}>
           <img
             width="50px"
             src={profilePic}

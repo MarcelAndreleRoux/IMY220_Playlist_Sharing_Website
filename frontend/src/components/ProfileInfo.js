@@ -1,20 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import DefaultProfileImage from "../../public/assets/images/profile_image_default.jpg";
 
-const ProfileInfo = ({ currentUser, loggedInUserId, viewingUserId }) => {
+const ProfileInfo = ({ currentUser, authenticatedUser }) => {
+  const isCurrentUser = authenticatedUser?.username === currentUser.username;
+
   return (
     <div className="card p-3">
       <img
-        src={currentUser.profilePic || DefaultProfileImage}
+        src={currentUser.profilePic}
         alt="Profile"
         className="img-fluid rounded-circle mb-3"
       />
       <h2>{currentUser.username}</h2>
       <p>Email: {currentUser.email}</p>
-      {loggedInUserId === viewingUserId && (
+      {isCurrentUser && (
         <Link
-          to={`/edit_profile/${loggedInUserId}`}
+          to={`/edit_profile/${currentUser.username}`}
           className="btn btn-primary mt-3"
         >
           Edit Profile

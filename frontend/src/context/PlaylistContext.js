@@ -22,16 +22,18 @@ export const PlaylistProvider = ({
 
   const genres = ["Pop", "Rock", "Jazz", "Hip Hop", "Classical", "Country"];
 
+  // Set the users Authentication
   const handleSetAuthenticatedUser = (user) => {
     setAuthenticatedUser(user);
     localStorage.setItem("authenticatedUser", JSON.stringify(user));
   };
 
+  // Add a new song to the feed
   const addNewSong = (newSong) => {
     setSongs((prevSongs) => [...prevSongs, newSong]);
   };
 
-  // Add a new playlist
+  // Add a new playlist to the feed
   const addNewPlaylist = (newPlaylist) => {
     const userId = localStorage.getItem("userId");
     if (!userId) return;
@@ -99,6 +101,7 @@ export const PlaylistProvider = ({
     });
   };
 
+  // Everything being sent as a Context
   return (
     <PlaylistContext.Provider
       value={{

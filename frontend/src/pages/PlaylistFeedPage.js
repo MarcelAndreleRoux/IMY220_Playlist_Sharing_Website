@@ -2,55 +2,52 @@ import React, { useContext, useState } from "react";
 import NavBar from "../components/NavBar";
 import { PlaylistContext } from "../context/PlaylistContext";
 import PlaylistCard from "../components/PlaylistCard";
-import AddPlaylistButton from "../components/AddPlaylistButton";
 import SearchBar from "../components/SreachBar";
+import AddPlaylistButton from "../components/AddPlaylistButton";
 
 const PlaylistFeed = () => {
   const { playlists, users, setUsers } = useContext(PlaylistContext);
 
-  const userId = localStorage.getItem("userId");
-  const currentUser = users.find((user) => user.userId === parseInt(userId));
+  const authenticatedUser = JSON.parse(
+    localStorage.getItem("authenticatedUser")
+  );
+  const currentUser = users.find(
+    (user) => user.username === authenticatedUser?.username
+  );
+
   const [filteredPlaylists, setFilteredPlaylists] = useState(playlists);
 
   const handleSearch = (searchTerm) => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
-
     const filteredPlaylists = playlists.filter((playlist) => {
       const playlistNameMatch = playlist.name
         .toLowerCase()
         .includes(lowercasedSearchTerm);
-
       const hashtagsMatch = playlist.hashtags
         ?.join(", ")
         .toLowerCase()
         .includes(lowercasedSearchTerm);
-
       const creator = users.find((user) => user.userId === playlist.creatorId);
-
       const creatorNameMatch = creator?.username
         ?.toLowerCase()
         .includes(lowercasedSearchTerm);
 
       return playlistNameMatch || hashtagsMatch || creatorNameMatch;
     });
-
     setFilteredPlaylists(filteredPlaylists);
   };
 
   const handleFastAdd = (playlist) => {
     if (currentUser) {
       const alreadyInPlaylists = currentUser.playlists.includes(playlist.id);
-
       if (!alreadyInPlaylists) {
         const updatedUser = {
           ...currentUser,
           playlists: [...currentUser.playlists, playlist.id],
         };
-
         const updatedUsers = users.map((user) =>
-          user.userId === parseInt(userId) ? updatedUser : user
+          user.username === authenticatedUser?.username ? updatedUser : user
         );
-
         setUsers(updatedUsers);
         sessionStorage.setItem("users", JSON.stringify(updatedUsers));
       } else {
@@ -59,6 +56,20 @@ const PlaylistFeed = () => {
     } else {
       alert("User not found.");
     }
+  };
+
+  const handleRemovePlaylist = (playlistId) => {
+    const updatedUser = {
+      ...currentUser,
+      playlists: currentUser.playlists.filter((id) => id !== playlistId),
+    };
+
+    const updatedUsers = users.map((user) =>
+      user.username === authenticatedUser?.username ? updatedUser : user
+    );
+
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
   };
 
   return (
@@ -74,6 +85,7 @@ const PlaylistFeed = () => {
                 playlist={playlist}
                 currentUser={currentUser}
                 handleFastAdd={handleFastAdd}
+                handleRemovePlaylist={handleRemovePlaylist}
               />
             ))
           ) : (
@@ -81,7 +93,6 @@ const PlaylistFeed = () => {
           )}
         </div>
       </div>
-
       <AddPlaylistButton />
     </>
   );

@@ -4,14 +4,16 @@ npm install
 Run the docker compose:
 Run:
 docker compose up
+Delete:
+docker compose down
 Stop:
 Ctrl + C
 
 Run docker (if needed):
 Build:
-docker build -t imy220-a6-website .
+docker build -t imy220-playlist-website .
 Run:
-docker run -p 3000:3000 imy220-a6-website
+docker run -p 3000:3000 imy220-playlist-website
 Stop:
 Ctrl + C
 

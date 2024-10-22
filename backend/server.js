@@ -362,7 +362,5 @@ app.get("*", (req, res) => {
 // Start the server
 app.listen(PORT, async () => {
   await connectToMongoDB();
-  console.log(
-    `Server is running on port: ${PORT} link: http://localhost:${PORT}/`
-  );
+  console.log(`Server is running on http://localhost:${PORT}/`);
 });

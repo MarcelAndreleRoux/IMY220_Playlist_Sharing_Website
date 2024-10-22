@@ -5,7 +5,7 @@ import PlaylistHeader from "../components/PlaylistHeader";
 import SongsInPlaylist from "../components/SongsInPlaylist";
 import CommentsSection from "../components/CommentsSection";
 import SearchBar from "../components/SreachBar";
-import { PlaylistContext } from "../context/PlaylistContext"; // Import context
+import { PlaylistContext } from "../context/PlaylistContext";
 
 const PlaylistPage = () => {
   const { playlistid } = useParams();
@@ -18,7 +18,9 @@ const PlaylistPage = () => {
   } = useContext(PlaylistContext);
 
   // Ensure playlists is not undefined and find the playlist by id
-  const playlist = playlists?.find((pl) => pl.id === parseInt(playlistid));
+  const playlist = playlists?.find((pl) => pl.id === parseInt(playlistid)) || {
+    songs: [],
+  };
 
   // Handle case where playlist isn't found
   if (!playlist) {
@@ -31,16 +33,17 @@ const PlaylistPage = () => {
   }
 
   // Extract only the songs from the current playlist
-  const playlistSongs = playlist.songs.map((songId) =>
-    songs.find((song) => song.id === songId)
-  );
+  const playlistSongs = playlist.songs
+    ? playlist.songs.map((songId) => songs.find((song) => song.id === songId))
+    : [];
 
   // State to store filtered songs
   const [filteredSongs, setFilteredSongs] = useState(playlistSongs);
 
   const handleSearch = (searchTerm) => {
-    const results = playlistSongs.filter((song) =>
-      song.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const results = playlistSongs.filter(
+      (song) =>
+        song && song.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredSongs(results);
   };
@@ -54,6 +57,7 @@ const PlaylistPage = () => {
         <PlaylistHeader
           playlist={playlist}
           userId={parseInt(localStorage.getItem("userId"), 10)}
+          users={users}
         />
 
         <SearchBar

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { PlaylistContext } from "../context/PlaylistContext";
@@ -8,23 +8,29 @@ import FriendsList from "../components/FriendsList";
 import RecentActivity from "../components/RecentActivity";
 
 const ProfilePage = () => {
-  const { userid } = useParams();
-  const { users, playlists } = useContext(PlaylistContext); // Access data from the context
-  const loggedInUserId = parseInt(localStorage.getItem("userId")); // Get logged-in userId from localStorage
-  const viewingUserId = parseInt(userid); // The profile we're viewing
-  const currentUser = users.find((user) => user.userId === viewingUserId);
+  const { username } = useParams();
+  const { users, playlists, authenticatedUser } = useContext(PlaylistContext);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const user = users.find((user) => user.username === username);
+    setCurrentUser(user);
+  }, [username, users]);
 
   if (!currentUser) {
     return (
       <div>
         <NavBar />
-        <p>User not found. Please log in.</p>
+        <p>User not found or still loading...</p>
+        <Link to="/login">
+          <button>Login</button>
+        </Link>
       </div>
     );
   }
 
   const userPlaylists = playlists.filter(
-    (playlist) => playlist.creatorId === viewingUserId
+    (playlist) => playlist.creatorId === currentUser.userId
   );
 
   return (
@@ -35,17 +41,12 @@ const ProfilePage = () => {
           <div className="col-md-4">
             <ProfileInfo
               currentUser={currentUser}
-              loggedInUserId={loggedInUserId}
-              viewingUserId={viewingUserId}
+              authenticatedUser={authenticatedUser}
             />
           </div>
 
           <div className="col-md-8">
-            <UserPlaylists
-              userPlaylists={userPlaylists}
-              loggedInUserId={loggedInUserId}
-              viewingUserId={viewingUserId}
-            />
+            <UserPlaylists userPlaylists={userPlaylists} />
             <FriendsList users={users} currentUser={currentUser} />
             <RecentActivity currentUser={currentUser} />
           </div>
