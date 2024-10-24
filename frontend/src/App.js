@@ -20,7 +20,7 @@ import PlaylistFeedPage from "./pages/PlaylistFeedPage";
 import AddSongPage from "./components/AddSongPage";
 import EditProfile from "./pages/EditProfile";
 import EditPlaylist from "./pages/EditPlaylist";
-import AddPlaylistComment from "./components/AddPlaylistComment";
+import AddCommentForm from "./components/AddCommentForm";
 import AddToPlaylistPage from "./components/AddToPlaylistPage";
 
 export const App = () => {
@@ -158,10 +158,6 @@ export const App = () => {
     {
       path: "/edit_playlist/:playlistid",
       element: <PrivateRoute element={<EditPlaylist />} />,
-    },
-    {
-      path: "/addcomment/:playlistid",
-      element: <PrivateRoute element={<AddPlaylistComment />} />,
     },
     {
       path: "*",

@@ -49,7 +49,7 @@ const PlaylistFeed = () => {
           user.username === authenticatedUser?.username ? updatedUser : user
         );
         setUsers(updatedUsers);
-        sessionStorage.setItem("users", JSON.stringify(updatedUsers));
+        localStorage.setItem("users", JSON.stringify(updatedUsers));
       } else {
         alert("Playlist is already in your personal playlists.");
       }
@@ -86,6 +86,9 @@ const PlaylistFeed = () => {
                 currentUser={currentUser}
                 handleFastAdd={handleFastAdd}
                 handleRemovePlaylist={handleRemovePlaylist}
+                isCreatedPlaylist={currentUser?.created_playlists.includes(
+                  playlist.id
+                )}
               />
             ))
           ) : (

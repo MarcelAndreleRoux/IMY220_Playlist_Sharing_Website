@@ -10,12 +10,18 @@ const EditPlaylist = () => {
   const { playlistid } = useParams();
   const navigate = useNavigate();
 
-  const playlist = playlists.find((pl) => pl.id === parseInt(playlistid));
-  const userId = localStorage.getItem("userId");
+  // Fetch authenticated user info from localStorage
+  const authenticatedUser = JSON.parse(
+    localStorage.getItem("authenticatedUser")
+  );
 
-  // If the playlist doesn't exist or the user isn't the owner, redirect back
+  const userId = authenticatedUser?.userId; // Extract userId from authenticated user
+
+  const playlist = playlists.find((pl) => pl.id === parseInt(playlistid));
+
+  // Ensure the playlist exists and the user is authorized to edit
   useEffect(() => {
-    if (!playlist || playlist.creatorId !== parseInt(userId)) {
+    if (!playlist || playlist.creatorId !== userId) {
       alert("You are not authorized to edit this playlist");
       navigate("/playlistfeed");
     }
@@ -28,7 +34,7 @@ const EditPlaylist = () => {
   const [hashtags, setHashtags] = useState(playlist?.hashtags.join(", ") || "");
   const [playlistSongs, setPlaylistSongs] = useState(playlist?.songs || []);
 
-  // Update playlist details
+  // Handle saving changes to the playlist
   const handleSaveChanges = () => {
     const updatedHashtags = hashtags
       .split(",")
@@ -53,7 +59,7 @@ const EditPlaylist = () => {
     navigate(`/playlist/${playlistid}`);
   };
 
-  // Handle playlist deletion
+  // Handle deleting the playlist
   const handleDeletePlaylist = () => {
     const updatedPlaylists = playlists.filter(
       (pl) => pl.id !== parseInt(playlistid)

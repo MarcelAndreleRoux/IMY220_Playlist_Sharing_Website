@@ -1,90 +1,123 @@
 import React, { useState, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
-import PlaylistHeader from "../components/PlaylistHeader";
-import SongsInPlaylist from "../components/SongsInPlaylist";
 import CommentsSection from "../components/CommentsSection";
-import SearchBar from "../components/SreachBar";
+import SongsInPlaylist from "../components/SongsInPlaylist";
 import { PlaylistContext } from "../context/PlaylistContext";
 
 const PlaylistPage = () => {
   const { playlistid } = useParams();
-  const {
-    playlists,
-    users,
-    songs,
-    removeSongFromPlaylist,
-    updatePlaylistComments,
-  } = useContext(PlaylistContext);
+  const { playlists, users, songs, setPlaylists, removeSongFromPlaylist } =
+    useContext(PlaylistContext);
 
-  // Ensure playlists is not undefined and find the playlist by id
-  const playlist = playlists?.find((pl) => pl.id === parseInt(playlistid)) || {
+  const playlist = playlists.find((pl) => pl.id === parseInt(playlistid)) || {
     songs: [],
   };
+  const currentUser = JSON.parse(localStorage.getItem("authenticatedUser"));
+  const isCreator = currentUser?.created_playlists.includes(playlist.id);
+  const [isFollowing, setIsFollowing] = useState(
+    currentUser?.playlists.includes(playlist.id)
+  );
 
-  // Handle case where playlist isn't found
-  if (!playlist) {
-    return (
-      <div>
-        <p>Playlist not found</p>
-        <Link to="/home">Go Back Home</Link>
-      </div>
+  const handleFollow = () => {
+    const updatedUser = {
+      ...currentUser,
+      playlists: [...currentUser.playlists, playlist.id],
+    };
+    const updatedUsers = users.map((user) =>
+      user.userId === currentUser.userId ? updatedUser : user
     );
-  }
-
-  // Extract only the songs from the current playlist
-  const playlistSongs = playlist.songs
-    ? playlist.songs.map((songId) => songs.find((song) => song.id === songId))
-    : [];
-
-  // State to store filtered songs
-  const [filteredSongs, setFilteredSongs] = useState(playlistSongs);
-
-  const handleSearch = (searchTerm) => {
-    const results = playlistSongs.filter(
-      (song) =>
-        song && song.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const updatedPlaylist = {
+      ...playlist,
+      followers: [...playlist.followers, currentUser.userId],
+    };
+    setPlaylists((prev) =>
+      prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
     );
-    setFilteredSongs(results);
+    setIsFollowing(true);
   };
 
-  const findUserById = (id) => users.find((user) => user.id === id);
+  const handleUnfollow = () => {
+    const updatedUser = {
+      ...currentUser,
+      playlists: currentUser.playlists.filter((id) => id !== playlist.id),
+    };
+    const updatedUsers = users.map((user) =>
+      user.userId === currentUser.userId ? updatedUser : user
+    );
+    const updatedPlaylist = {
+      ...playlist,
+      followers: playlist.followers.filter((id) => id !== currentUser.userId),
+    };
+    setPlaylists((prev) =>
+      prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
+    );
+    setIsFollowing(false);
+  };
 
   return (
     <>
       <NavBar />
       <div className="container mt-5">
-        <PlaylistHeader
-          playlist={playlist}
-          userId={parseInt(localStorage.getItem("userId"), 10)}
-          users={users}
-        />
-
-        <SearchBar
-          onSearch={handleSearch}
-          placeholder="Search Playlist Songs..."
-        />
+        <div className="d-flex align-items-center mb-4">
+          <img
+            src={playlist.coverImage || "https://via.placeholder.com/150"}
+            className="img-thumbnail"
+            style={{ width: "150px", height: "150px", objectFit: "cover" }}
+            alt="Cover"
+          />
+          <div className="ms-4">
+            <h1>{playlist.name}</h1>
+            <p className="text-muted">
+              By{" "}
+              {users.find((u) => u.userId === playlist.creatorId)?.username ||
+                "Unknown"}
+            </p>
+            <p>{playlist.genre}</p>
+            <div>
+              {playlist.hashtags.map((tag, i) => (
+                <span key={i} className="badge bg-secondary me-1">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+            <p>{playlist.followers.length} Followers</p>
+            <div className="mt-4">
+              {isCreator ? (
+                <Link to={`/edit_playlist/${playlist.id}`}>
+                  <button className="btn btn-warning">Edit Playlist</button>
+                </Link>
+              ) : isFollowing ? (
+                <button className="btn btn-danger" onClick={handleUnfollow}>
+                  Unfollow
+                </button>
+              ) : (
+                <button className="btn btn-success" onClick={handleFollow}>
+                  Follow
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <SongsInPlaylist
-          songs={filteredSongs}
-          removeSongFromPlaylist={removeSongFromPlaylist}
+          playlist={playlist}
+          songs={songs}
+          removeSongFromPlaylist={(songId) =>
+            removeSongFromPlaylist(playlist.id, songId)
+          }
         />
-
-        <div className="button">
-          <Link to="/songfeed">
-            <button className="add-songs-btn">Add Songs</button>
-          </Link>
-        </div>
 
         <CommentsSection
           playlist={playlist}
-          findUserById={findUserById}
-          updatePlaylistComments={updatePlaylistComments}
+          currentUser={currentUser}
+          findUserById={(id) => users.find((user) => user.userId === id)}
+          updatePlaylistComments={(id, comments) =>
+            setPlaylists((prev) =>
+              prev.map((pl) => (pl.id === id ? { ...pl, comments } : pl))
+            )
+          }
         />
-
-        <Link to={`/addcomment/${playlist.id}`} className="add-comment-btn">
-          Add a Comment
-        </Link>
       </div>
     </>
   );

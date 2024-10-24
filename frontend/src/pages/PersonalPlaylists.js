@@ -8,16 +8,27 @@ import NoPlaylistsMessage from "../components/NoPlaylistsMessage";
 const PersonalPlaylists = () => {
   const { username } = useParams();
   const { users, playlists, setUsers } = useContext(PlaylistContext);
-  const [userPlaylists, setUserPlaylists] = useState([]);
+
+  const [likedPlaylists, setLikedPlaylists] = useState([]);
+  const [createdPlaylists, setCreatedPlaylists] = useState([]);
 
   const currentUser = users.find((user) => user.username === username);
 
   useEffect(() => {
     if (currentUser) {
-      const filteredPlaylists = playlists.filter((playlist) =>
-        currentUser.playlists.includes(playlist.id)
+      const created = playlists.filter((playlist) =>
+        currentUser.created_playlists.includes(playlist.id)
       );
-      setUserPlaylists(filteredPlaylists);
+
+      // Filter out playlists that are both liked and created
+      const liked = playlists.filter(
+        (playlist) =>
+          currentUser.playlists.includes(playlist.id) &&
+          !currentUser.created_playlists.includes(playlist.id)
+      );
+
+      setLikedPlaylists(liked);
+      setCreatedPlaylists(created);
     }
   }, [currentUser, playlists]);
 
@@ -35,7 +46,10 @@ const PersonalPlaylists = () => {
     sessionStorage.setItem("users", JSON.stringify(updatedUsers));
   };
 
-  if (!currentUser || userPlaylists.length === 0) {
+  if (
+    !currentUser ||
+    (likedPlaylists.length === 0 && createdPlaylists.length === 0)
+  ) {
     return (
       <>
         <NavBar />
@@ -49,15 +63,41 @@ const PersonalPlaylists = () => {
       <NavBar />
       <div className="container mt-5">
         <h2>{currentUser.username}'s Playlists</h2>
+
         <div className="row">
-          {userPlaylists.map((playlist) => (
-            <PlaylistCard
-              key={playlist.id}
-              playlist={playlist}
-              handleRemovePlaylist={handleRemovePlaylist}
-              isPersonalView={true}
+          <h3>Liked Playlists</h3>
+          {likedPlaylists.length > 0 ? (
+            likedPlaylists.map((playlist) => (
+              <PlaylistCard
+                key={playlist.id}
+                playlist={playlist}
+                currentUser={currentUser}
+                handleRemovePlaylist={handleRemovePlaylist}
+              />
+            ))
+          ) : (
+            <NoPlaylistsMessage message="No Liked Playlists Found." />
+          )}
+        </div>
+
+        <div className="row mt-5">
+          <h3>Created Playlists</h3>
+          {createdPlaylists.length > 0 ? (
+            createdPlaylists.map((playlist) => (
+              <PlaylistCard
+                key={playlist.id}
+                playlist={playlist}
+                currentUser={currentUser}
+                isCreatedPlaylist={true}
+              />
+            ))
+          ) : (
+            <NoPlaylistsMessage
+              message="No Created Playlists Found."
+              linkText="Create Playlists"
+              linkTo="/create_playlist"
             />
-          ))}
+          )}
         </div>
       </div>
     </>

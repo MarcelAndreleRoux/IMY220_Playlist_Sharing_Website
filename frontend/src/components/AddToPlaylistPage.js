@@ -23,11 +23,8 @@ const AddToPlaylistPage = () => {
     const fetchPlaylistCount = async () => {
       try {
         const response = await fetch("/api/playlists", { method: "GET" });
-        if (!response.ok) {
-          throw new Error("Error fetching playlists.");
-        }
-        const { count } = await response.json(); // Get the count from the response
-        setPlaylistCount(count); // Set the playlist count
+        const playlists = await response.json(); // Assuming API returns a list of playlists
+        setPlaylistCount(playlists.length); // Set the count based on response length
       } catch (error) {
         console.error("Error fetching playlist count:", error);
         setError("Failed to fetch playlist count.");
@@ -47,17 +44,12 @@ const AddToPlaylistPage = () => {
     const description = descriptionRef.current.value;
     const hashtags = hashtagsRef.current.value;
 
-    // Extract authenticated user from localStorage
     const authenticatedUser = JSON.parse(
       localStorage.getItem("authenticatedUser")
     );
     const username = authenticatedUser?.username;
 
-    // Find the current user based on username
     const currentUser = users.find((user) => user.username === username);
-
-    console.log("Authenticated User:", authenticatedUser); // Debugging
-    console.log("Current User:", currentUser); // Debugging
 
     if (!name || !genre) {
       setError("Please fill in all required fields (name and genre).");
@@ -82,6 +74,8 @@ const AddToPlaylistPage = () => {
       creatorId: currentUser.userId,
       hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
       creationDate: new Date().toISOString(),
+      comments: [],
+      followers: [currentUser.userId],
     };
 
     try {
@@ -97,11 +91,16 @@ const AddToPlaylistPage = () => {
 
       const savedPlaylist = await response.json();
 
+      // Update the current user's created_playlists array
       const updatedUser = {
         ...currentUser,
-        playlists: [...(currentUser.playlists || []), savedPlaylist.id],
+        created_playlists: [
+          ...(currentUser.created_playlists || []),
+          savedPlaylist.id,
+        ],
       };
 
+      // Update the users array
       const updatedUsers = users.map((user) =>
         user.username === username ? updatedUser : user
       );
@@ -130,7 +129,7 @@ const AddToPlaylistPage = () => {
             className="form-control"
             id="name"
             ref={nameRef}
-            placeholder="Enter playlist name"
+            placeholder={`New Playlist #${playlistCount + 1}`}
             required
           />
         </div>

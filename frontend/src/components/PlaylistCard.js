@@ -1,32 +1,31 @@
-import React, { useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
+import { PlaylistContext } from "../context/PlaylistContext";
 
 const PlaylistCard = ({
   playlist,
   currentUser,
   handleFastAdd,
   handleRemovePlaylist,
-  isPersonalView = false,
+  isCreatedPlaylist = false,
 }) => {
-  const [buttonText, setButtonText] = useState(
-    isPersonalView ? "Remove from Playlist" : "Like Playlist"
-  );
-  const [showPopup, setShowPopup] = useState(false); // Popup state
+  const { users } = useContext(PlaylistContext); // Access users from context
+  const [creatorName, setCreatorName] = useState("Unknown");
+  const [buttonText, setButtonText] = useState("Like Playlist");
 
-  const confirmRemove = () => {
-    setShowPopup(true); // Show confirmation popup
-  };
+  // Find the creator by the creatorId and set the name
+  useEffect(() => {
+    const creator = users.find((user) => user.userId === playlist.creatorId);
+    if (creator) {
+      setCreatorName(creator.username);
+    }
 
-  const handleConfirm = () => {
-    handleRemovePlaylist(playlist.id);
-    setButtonText("Like Playlist");
-    setShowPopup(false); // Close popup
-  };
-
-  const handleCancel = () => {
-    setShowPopup(false); // Close popup without removing
-  };
+    // Set button text based on whether the playlist is already added
+    if (currentUser?.playlists.includes(playlist.id)) {
+      setButtonText("Remove from Playlist");
+    }
+  }, [playlist.creatorId, users, currentUser]);
 
   const handleAddOrRemove = () => {
     if (buttonText === "Like Playlist") {
@@ -34,7 +33,8 @@ const PlaylistCard = ({
       setButtonText("Adding...");
       setTimeout(() => setButtonText("Remove from Playlist"), 300);
     } else {
-      confirmRemove();
+      handleRemovePlaylist(playlist.id);
+      setButtonText("Like Playlist");
     }
   };
 
@@ -50,65 +50,31 @@ const PlaylistCard = ({
             alt={playlist.name}
             style={{ height: "200px", objectFit: "cover" }}
           />
-          <div className="card-body">
-            <h5 className="card-title">{playlist.name}</h5>
-            <p className="card-text">By {playlist.artist || "Unknown"}</p>
-            {playlist.hashtags && playlist.hashtags.length > 0 && (
-              <div>
-                <strong>Hashtags: </strong>
-                {playlist.hashtags.map((hashtag, index) => (
-                  <span key={index} className="badge bg-secondary me-1">
-                    {hashtag}
-                  </span>
-                ))}
-              </div>
-            )}
-            <p>
-              <strong>Created on: </strong>
-              {formattedDate}
-            </p>
-          </div>
         </Link>
-
-        {showPopup && (
-          <div className="popup">
-            <div className="popup-content">
-              <p>Are you sure you want to remove this playlist?</p>
-              <button className="btn btn-danger" onClick={handleConfirm}>
-                Yes, Remove
-              </button>
-              <button className="btn btn-secondary" onClick={handleCancel}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        <style jsx="true">{`
-          .popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-          }
-          .popup-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-          }
-        `}</style>
+        <div className="card-body">
+          <h5 className="card-title">
+            <Link to={`/playlist/${playlist.id}`}>{playlist.name}</Link>
+          </h5>
+          <p className="card-text">
+            By: <Link to={`/profile/${playlist.creatorId}`}>{creatorName}</Link>
+          </p>
+          <p>Total Followers: {playlist.followers.length}</p>
+          <p>
+            <strong>Created on: </strong>
+            {formattedDate}
+          </p>
+        </div>
 
         <div className="card-footer">
-          <button className="btn btn-primary" onClick={handleAddOrRemove}>
-            {buttonText}
-          </button>
+          {isCreatedPlaylist ? (
+            <Link to={`/edit_playlist/${playlist.id}`}>
+              <button className="btn btn-warning">Edit Playlist</button>
+            </Link>
+          ) : (
+            <button className="btn btn-primary" onClick={handleAddOrRemove}>
+              {buttonText}
+            </button>
+          )}
         </div>
       </div>
     </div>
