@@ -14,15 +14,15 @@ const RegisterForm = () => {
 
   const navigate = useNavigate();
 
-  const validateUserInput = (e) => {
+  const validateUserInput = async (e) => {
     e.preventDefault();
 
+    const newUserId = users.length + 1;
     const username = usernameRef.current.value.trim();
     const email = emailRef.current.value.trim();
     const password = passwordRef.current.value.trim();
     const confirmPassword = confirmPasswordRef.current.value.trim();
 
-    // Basic validation
     if (!username || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
@@ -43,32 +43,55 @@ const RegisterForm = () => {
       return;
     }
 
-    // Check if the email already exists in the users array
     const emailExists = users.some((user) => user.email === email);
     if (emailExists) {
       setError("Email already exists. Please use another email.");
       return;
     }
 
-    // If everything passes validation, create a new user
-    const newUser = {
-      userId: users.length + 1, // Generate a new userId
-      username,
-      email,
-      password,
-      friends: [],
-      playlists: [],
-      profilePic:
-        "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg", // Default profile picture
-    };
+    try {
+      const newUser = {
+        userId: newUserId,
+        username,
+        email,
+        password,
+        friends: [],
+        profilePic:
+          "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+        playlists: [],
+        created_playlists: [],
+      };
 
-    setUsers([...users, newUser]); // Add the new user to the users state
-    setAuthenticatedUser(newUser.username, newUser.email, newUser.userId); // Log the user in
-    localStorage.setItem("userId", newUser.userId);
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
 
-    setFormValid(true);
-    setError("");
-    navigate("/home"); // Redirect to home after successful registration
+      if (!response.ok) {
+        throw new Error("Registration failed");
+      }
+
+      const savedUser = await response.json();
+      setUsers([...users, savedUser.result]);
+
+      const { password: _, ...userWithoutPassword } = savedUser.result;
+
+      sessionStorage.setItem(
+        "authenticatedUser",
+        JSON.stringify(userWithoutPassword)
+      );
+
+      setAuthenticatedUser(userWithoutPassword);
+      setFormValid(true);
+      setError("");
+      navigate("/login");
+    } catch (error) {
+      setError("Registration failed. Please try again.");
+      console.error("Registration error:", error);
+    }
   };
 
   return (

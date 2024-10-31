@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SightLogo from "../../public/assets/images/Muzik_Full_Logo.png";
 import { PlaylistContext } from "../context/PlaylistContext";
+import { deleteCookie } from "../utils/utils";
 
 const NavBar = () => {
   const { authenticatedUser, setAuthenticatedUser } =
@@ -22,7 +23,8 @@ const NavBar = () => {
 
   const handleLogout = () => {
     setAuthenticatedUser(null);
-    localStorage.removeItem("authenticatedUser");
+    sessionStorage.removeItem("authenticatedUser");
+    deleteCookie("userId");
     navigate("/login");
   };
 

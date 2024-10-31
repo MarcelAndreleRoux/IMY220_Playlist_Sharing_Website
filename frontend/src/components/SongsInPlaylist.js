@@ -1,11 +1,12 @@
 import React from "react";
 import NoSongsMessage from "./NoSongsMessage";
+import SpotifyEmbed from "./SpotifyEmbed";
 
 const SongsInPlaylist = ({ playlist, songs, removeSongFromPlaylist }) => {
   // Map song IDs from the playlist to actual song objects
   const playlistSongs = playlist.songs
     .map((songId) => songs.find((song) => song.id === songId))
-    .filter((song) => song); // Filter out any undefined songs
+    .filter((song) => song);
 
   return (
     <>
@@ -15,33 +16,31 @@ const SongsInPlaylist = ({ playlist, songs, removeSongFromPlaylist }) => {
           {playlistSongs.map((song) => (
             <li
               key={song.id}
-              className="list-group-item d-flex align-items-center"
+              className={`list-group-item d-flex align-items-center ${
+                song.isDeleted ? "bg-light" : ""
+              }`}
             >
               <div className="flex-grow-1">
-                <h5 className="mb-1">{song.name}</h5>
+                <h5 className="mb-1">
+                  {song.name}
+                  {song.isDeleted && (
+                    <span className="badge bg-secondary ms-2">Deleted</span>
+                  )}
+                </h5>
                 <p className="mb-1 text-muted">by {song.artist}</p>
               </div>
 
-              {song.link ? (
-                <iframe
-                  src={`https://open.spotify.com/embed/track/${
-                    song.link.split("/track/")[1]
-                  }`}
-                  width="300"
-                  height="80"
-                  frameBorder="0"
-                  allow="encrypted-media"
-                  title={song.name}
-                ></iframe>
+              {!song.isDeleted ? (
+                <SpotifyEmbed songLink={song.link} />
               ) : (
-                <p className="text-muted">No Spotify link available</p>
+                <p className="text-muted">Song no longer available</p>
               )}
 
               <button
                 className="btn btn-danger ms-3"
                 onClick={() => removeSongFromPlaylist(song.id)}
               >
-                Remove Song
+                Remove from Playlist
               </button>
             </li>
           ))}

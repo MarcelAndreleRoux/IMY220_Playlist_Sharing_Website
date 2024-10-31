@@ -38,11 +38,14 @@ const AddToPlaylistPage = () => {
     event.preventDefault();
     setLoading(true);
 
+    // default name should be displayed if nothing is given
     const name = nameRef.current.value;
+    // default genre should be given
     const genre = genreRef.current.value;
+    // get a random cover image or default cover image if nothing is given
     const coverImage = coverImageRef.current.value;
-    const description = descriptionRef.current.value;
-    const hashtags = hashtagsRef.current.value;
+    const description = descriptionRef.current.value || "";
+    const hashtags = hashtagsRef.current.value || "";
 
     const authenticatedUser = JSON.parse(
       localStorage.getItem("authenticatedUser")

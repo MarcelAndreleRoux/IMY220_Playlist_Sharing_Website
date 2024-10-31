@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { getCookie } from "./utils/utils";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -69,39 +70,37 @@ export const App = () => {
         setSongs(songsData.songs);
         setPlaylists(playlistsData.playlists);
         setUsers(usersData.users);
-        setLoading(false); // Set loading to false once data is fetched
+        setLoading(false);
       } catch (error) {
-        // Catch any errors and log them
         console.error("Error fetching data:", error);
         setError(`Failed to fetch data: ${error.message}`);
-        setLoading(false); // Stop loading even if there’s an error
+        setLoading(false);
       }
     };
 
-    fetchData(); // Call the async function inside useEffect
+    fetchData();
   }, []);
 
   const PrivateRoute = ({ element }) => {
     const { authenticatedUser } = useContext(PlaylistContext);
+    const sessionUser = JSON.parse(sessionStorage.getItem("authenticatedUser"));
+    const userId = getCookie("userId");
 
-    // Wait until authenticatedUser state is determined
+    // Return loading state while checking authentication
     if (authenticatedUser === undefined) {
       return <div>Loading...</div>;
     }
 
-    // Redirect to login if not authenticated
-    if (!authenticatedUser) {
-      return <Navigate to="/login" replace />;
-    }
+    // Check all authentication methods at once
+    const isAuthenticated = authenticatedUser && sessionUser && userId;
 
-    // Render the requested element if authenticated
-    return element;
+    return isAuthenticated ? element : <Navigate to="/login" />;
   };
 
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <SplashPage />,
+      element: <Navigate to="/login" />,
     },
     {
       path: "/login",

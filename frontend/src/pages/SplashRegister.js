@@ -1,6 +1,5 @@
 import React from "react";
 import RegisterForm from "../components/RegisterForm";
-import SocialRegisterButtons from "../components/SocialRegisterButtons";
 import { Link } from "react-router-dom";
 
 const SplashRegister = () => {
@@ -8,13 +7,9 @@ const SplashRegister = () => {
     <div className="container mt-5">
       <h1>Register</h1>
       <p className="text-muted">
-        <small>Sign up with social media</small>
-      </p>
-      <SocialRegisterButtons />
-
-      <p className="text-muted">
         <small>Sign up with your details</small>
       </p>
+
       <RegisterForm />
 
       <p className="mt-3">

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 import { PlaylistContext } from "../context/PlaylistContext";
 import { useNavigate } from "react-router-dom";
+import { setCookie, getCookie } from "../utils/utils";
 
 const LoginForm = () => {
   const { users, setAuthenticatedUser } = useContext(PlaylistContext);
@@ -20,6 +21,7 @@ const LoginForm = () => {
 
   const validateUserInput = async (e) => {
     e.preventDefault();
+    setError("");
 
     const email = emailRef.current.value.trim();
     const password = passwordRef.current.value.trim();
@@ -36,29 +38,53 @@ const LoginForm = () => {
 
     const user = users.find(
       (user) =>
-        user?.email?.toLowerCase() === email.toLowerCase() &&
-        user?.password === password
+        user.email.toLowerCase() === email.toLowerCase() &&
+        user.password === password
     );
 
     if (user) {
-      // Exclude password
-      const { password, ...userWithoutPassword } = user;
+      const { password: _, ...userWithoutPassword } = user;
 
-      // Set authenticated user
-      setAuthenticatedUser(userWithoutPassword);
-      localStorage.setItem(
+      // Set cookie first
+      setCookie("userId", userWithoutPassword.userId, 1);
+
+      // Then set session storage
+      sessionStorage.setItem(
         "authenticatedUser",
         JSON.stringify(userWithoutPassword)
       );
 
+      // Update context
+      setAuthenticatedUser(userWithoutPassword);
+
       setSuccess("Login successful!");
       setError("");
-      navigate("/home");
+
+      // Add a longer delay and check auth state before navigating
+      setTimeout(() => {
+        const userId = getCookie("userId");
+        console.log("About to navigate, userId:", userId);
+        if (userId) {
+          navigate("/home");
+        } else {
+          console.error("Cookie not set properly");
+        }
+      }, 500);
     } else {
       setError("Invalid email or password.");
       setSuccess("");
     }
   };
+
+  // If user is already authenticated, redirect to home
+  useEffect(() => {
+    const sessionUser = sessionStorage.getItem("authenticatedUser");
+    const userId = getCookie("userId");
+
+    if (sessionUser && userId) {
+      navigate("/home");
+    }
+  }, [navigate]);
 
   return (
     <form onSubmit={validateUserInput}>

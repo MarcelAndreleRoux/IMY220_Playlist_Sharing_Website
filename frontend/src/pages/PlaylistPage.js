@@ -24,9 +24,11 @@ const PlaylistPage = () => {
       ...currentUser,
       playlists: [...currentUser.playlists, playlist.id],
     };
+
     const updatedUsers = users.map((user) =>
       user.userId === currentUser.userId ? updatedUser : user
     );
+
     const updatedPlaylist = {
       ...playlist,
       followers: [...playlist.followers, currentUser.userId],
@@ -75,11 +77,13 @@ const PlaylistPage = () => {
             </p>
             <p>{playlist.genre}</p>
             <div>
-              {playlist.hashtags.map((tag, i) => (
-                <span key={i} className="badge bg-secondary me-1">
-                  #{tag}
-                </span>
-              ))}
+              {playlist.hashtags
+                ? playlist.hashtags.map((tag, i) => (
+                    <span key={i} className="badge bg-secondary me-1">
+                      #{tag}
+                    </span>
+                  ))
+                : ""}
             </div>
             <p>{playlist.followers.length} Followers</p>
             <div className="mt-4">

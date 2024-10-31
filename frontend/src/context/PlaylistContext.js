@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import { setCookie, getCookie, deleteCookie } from "../utils/utils";
 
 // Create a new context
 export const PlaylistContext = createContext();
@@ -6,18 +7,21 @@ export const PlaylistContext = createContext();
 // Create a provider component
 export const PlaylistProvider = ({
   children,
-  songs: initialSongs,
-  playlists: initialPlaylists,
-  users: initialUsers,
+  songs: initialSongs = [],
+  playlists: initialPlaylists = [],
+  users: initialUsers = [],
 }) => {
-  // State for songs, playlists, users, genres, and authenticatedUser
-  const [songs, setSongs] = useState(initialSongs || []);
-  const [playlists, setPlaylists] = useState(initialPlaylists || []);
-  const [users, setUsers] = useState(initialUsers || []);
+  const [songs, setSongs] = useState(initialSongs);
+  const [playlists, setPlaylists] = useState(initialPlaylists);
+  const [users, setUsers] = useState(initialUsers);
 
   const [authenticatedUser, setAuthenticatedUser] = useState(() => {
-    const user = localStorage.getItem("authenticatedUser");
-    return user ? JSON.parse(user) : null;
+    const sessionUser = sessionStorage.getItem("authenticatedUser");
+    const userId = getCookie("userId");
+    if (sessionUser && userId) {
+      return JSON.parse(sessionUser);
+    }
+    return null;
   });
 
   const genres = ["Pop", "Rock", "Jazz", "Hip Hop", "Classical", "Country"];
@@ -25,7 +29,13 @@ export const PlaylistProvider = ({
   // Set the users Authentication
   const handleSetAuthenticatedUser = (user) => {
     setAuthenticatedUser(user);
-    localStorage.setItem("authenticatedUser", JSON.stringify(user));
+    if (user) {
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(user));
+      setCookie("userId", user.userId, 1);
+    } else {
+      sessionStorage.removeItem("authenticatedUser");
+      deleteCookie("userId");
+    }
   };
 
   // Add a new song to the feed
@@ -66,7 +76,6 @@ export const PlaylistProvider = ({
           const songs = playlist.songs || [];
           return { ...playlist, songs: [...songs, song.id] };
         }
-
         return playlist;
       });
     });
@@ -79,10 +88,9 @@ export const PlaylistProvider = ({
         if (playlist.id === playlistId) {
           return {
             ...playlist,
-            songs: playlist.songs.filter((id) => id !== songId),
+            songs: (playlist.songs || []).filter((id) => id !== songId),
           };
         }
-
         return playlist;
       });
     });
@@ -101,6 +109,34 @@ export const PlaylistProvider = ({
     });
   };
 
+  const restoreSong = async (songId) => {
+    try {
+      const response = await fetch(`/api/songs/${songId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isDeleted: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to restore song");
+      }
+
+      const restoredSong = await response.json();
+      setSongs((prevSongs) =>
+        prevSongs.map((song) => (song.id === songId ? restoredSong : song))
+      );
+
+      return restoredSong;
+    } catch (error) {
+      console.error("Error restoring song:", error);
+      throw error;
+    }
+  };
+
   // Everything being sent as a Context
   return (
     <PlaylistContext.Provider
@@ -116,6 +152,8 @@ export const PlaylistProvider = ({
         addSongToPlaylist,
         removeSongFromPlaylist,
         updatePlaylistComments,
+        setSongs,
+        restoreSong,
         setPlaylists,
         setUsers,
       }}

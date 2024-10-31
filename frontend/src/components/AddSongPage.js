@@ -3,123 +3,156 @@ import { useNavigate } from "react-router-dom";
 import { PlaylistContext } from "../context/PlaylistContext";
 
 const AddSongPage = () => {
-  const { songs = [], addNewSong } = useContext(PlaylistContext);
+  const { addNewSong, authenticatedUser } = useContext(PlaylistContext);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const nameRef = useRef(null);
   const artistRef = useRef(null);
   const linkRef = useRef(null);
-  const genreRef = useRef(null);
 
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const validateSpotifyUrl = (url) => {
+    const spotifyUrlPattern =
+      /^https:\/\/open\.spotify\.com\/track\/[a-zA-Z0-9]{22}/;
+    return spotifyUrlPattern.test(url);
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     const name = nameRef.current.value.trim();
     const artist = artistRef.current.value.trim();
     const link = linkRef.current.value.trim();
-    const genre = genreRef.current.value.trim();
 
-    // Check if any fields are empty
+    // Validate required fields
     if (!name || !artist || !link) {
-      setError("Please fill in all the required fields.");
+      setError("All fields are required");
       return;
     }
 
-    // Check if the song already exists (ignoring case and trimming)
-    const songExists = songs.some(
-      (song) =>
-        song.name.trim().toLowerCase() === name.toLowerCase() &&
-        song.artist.trim().toLowerCase() === artist.toLowerCase()
-    );
-
-    if (songExists) {
-      setError("This song already exists in the system.");
+    // Validate Spotify URL
+    if (!validateSpotifyUrl(link)) {
+      setError("Please enter a valid Spotify track URL");
       return;
     }
 
-    // Create new song object
-    const newSong = {
-      id: Date.now(), // Temporary unique ID
-      name,
-      artist,
-      link,
-      genre,
-    };
+    try {
+      // Check if a song with this link already exists (including deleted ones)
+      const existingSong = songs.find((song) => song.link === link);
 
-    // Add new song to the list
-    addNewSong(newSong);
+      if (existingSong) {
+        if (existingSong.isDeleted) {
+          // If song exists but was deleted, restore it
+          const response = await fetch(`/api/songs/${existingSong.id}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              isDeleted: false,
+              name,
+              artist,
+            }),
+          });
 
-    // Clear the form fields
-    nameRef.current.value = "";
-    artistRef.current.value = "";
-    linkRef.current.value = "";
-    genreRef.current.value = "";
+          if (!response.ok) {
+            throw new Error("Failed to restore song");
+          }
 
-    // Redirect to the song feed after submission
-    navigate("/songfeed");
+          const updatedSong = await response.json();
+          setSongs((prevSongs) =>
+            prevSongs.map((song) =>
+              song.id === existingSong.id ? updatedSong : song
+            )
+          );
+        } else {
+          setError("This song already exists in the system.");
+          return;
+        }
+      } else {
+        // Create new song if it doesn't exist
+        const newSong = {
+          name,
+          artist,
+          link,
+          creatorId: authenticatedUser.userId,
+          createdAt: new Date().toISOString(),
+          addedToPlaylistsCount: 0,
+          isDeleted: false,
+        };
+
+        const response = await fetch("/api/songs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newSong),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to add song");
+        }
+
+        const addedSong = await response.json();
+        addNewSong(addedSong);
+      }
+
+      navigate("/songfeed");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <div className="container mt-5">
       <h1>Add a New Song</h1>
-      <form onSubmit={handleSubmit}>
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <form onSubmit={handleSubmit} className="needs-validation">
         <div className="mb-3">
           <label htmlFor="name" className="form-label">
-            Song Name <span className="text-danger">*</span>
+            Song Name
           </label>
           <input
             type="text"
             className="form-control"
             id="name"
             ref={nameRef}
-            placeholder="Enter song name"
             required
           />
         </div>
 
         <div className="mb-3">
           <label htmlFor="artist" className="form-label">
-            Artist <span className="text-danger">*</span>
+            Artist
           </label>
           <input
             type="text"
             className="form-control"
             id="artist"
             ref={artistRef}
-            placeholder="Enter artist name"
             required
           />
         </div>
 
         <div className="mb-3">
           <label htmlFor="link" className="form-label">
-            Spotify Link <span className="text-danger">*</span>
+            Spotify Link
           </label>
           <input
             type="url"
             className="form-control"
             id="link"
             ref={linkRef}
-            placeholder="Enter Spotify song link"
+            placeholder="https://open.spotify.com/track/..."
             required
           />
+          <div className="form-text">
+            Enter the Spotify track URL (e.g.,
+            https://open.spotify.com/track/...)
+          </div>
         </div>
-
-        <div className="mb-3">
-          <label htmlFor="genre" className="form-label">
-            Genre (optional)
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="genre"
-            ref={genreRef}
-            placeholder="Enter genre"
-          />
-        </div>
-
-        {error && <div className="alert alert-danger">{error}</div>}
 
         <button type="submit" className="btn btn-primary">
           Add Song
