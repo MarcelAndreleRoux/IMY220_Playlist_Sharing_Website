@@ -69,7 +69,7 @@ const SongPage = () => {
 
       // Only navigate after state updates are queued
       setTimeout(() => {
-        navigate("/songfeed");
+        navigate("/home?tab=songs");
       }, 100);
     } catch (err) {
       setError(err.message);
@@ -119,7 +119,7 @@ const SongPage = () => {
               >
                 Add to Playlist
               </Link>
-              <Link to="/songfeed" className="btn btn-secondary">
+              <Link to="/home?tab=songs" className="btn btn-secondary">
                 Back to Songs
               </Link>
             </div>

@@ -35,37 +35,92 @@ const EditPlaylist = () => {
   const [playlistSongs, setPlaylistSongs] = useState(playlist?.songs || []);
 
   // Handle saving changes to the playlist
-  const handleSaveChanges = () => {
-    const updatedHashtags = hashtags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag);
+  const handleSaveChanges = async () => {
+    try {
+      const updatedHashtags = hashtags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
 
-    const updatedPlaylist = {
-      ...playlist,
-      name,
-      genre,
-      coverImage,
-      description,
-      hashtags: updatedHashtags,
-      songs: playlistSongs,
-    };
+      const updatedPlaylist = {
+        ...playlist,
+        name,
+        genre,
+        coverImage,
+        description,
+        hashtags: updatedHashtags,
+        songs: playlistSongs,
+        followers: playlist.followers || [],
+      };
 
-    const updatedPlaylists = playlists.map((pl) =>
-      pl.id === parseInt(playlistid) ? updatedPlaylist : pl
-    );
+      const response = await fetch(`/api/playlists/${playlistid}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedPlaylist),
+      });
 
-    setPlaylists(updatedPlaylists);
-    navigate(`/playlist/${playlistid}`);
+      if (!response.ok) {
+        throw new Error("Failed to update playlist");
+      }
+
+      // Update local state with the complete playlist object
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((pl) =>
+          pl.id === parseInt(playlistid) ? updatedPlaylist : pl
+        )
+      );
+
+      navigate(`/playlist/${playlistid}`);
+    } catch (error) {
+      console.error("Error updating playlist:", error);
+    }
   };
 
   // Handle deleting the playlist
-  const handleDeletePlaylist = () => {
-    const updatedPlaylists = playlists.filter(
-      (pl) => pl.id !== parseInt(playlistid)
-    );
-    setPlaylists(updatedPlaylists);
-    navigate("/playlistfeed");
+  const handleDeletePlaylist = async () => {
+    if (!window.confirm("Are you sure you want to delete this playlist?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/playlists/${playlistid}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete playlist");
+      }
+
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.filter((pl) => pl.id !== parseInt(playlistid))
+      );
+
+      // Also update the creator's created_playlists array
+      const userResponse = await fetch(
+        `/api/users/${authenticatedUser.userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            created_playlists: authenticatedUser.created_playlists.filter(
+              (id) => id !== parseInt(playlistid)
+            ),
+          }),
+        }
+      );
+
+      if (!userResponse.ok) {
+        console.warn("Failed to update user created playlists");
+      }
+
+      navigate("/home?tab=playlists");
+    } catch (error) {
+      console.error("Error deleting playlist:", error);
+    }
   };
 
   return (

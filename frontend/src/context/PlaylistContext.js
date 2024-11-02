@@ -15,6 +15,10 @@ export const PlaylistProvider = ({
   const [playlists, setPlaylists] = useState(initialPlaylists);
   const [users, setUsers] = useState(initialUsers);
 
+  const [songsCount, setSongsCount] = useState(initialSongs.length);
+  const [playlistsCount, setPlaylistsCount] = useState(initialPlaylists.length);
+  const [usersCount, setUsersCount] = useState(initialUsers.length);
+
   const [authenticatedUser, setAuthenticatedUser] = useState(() => {
     const sessionUser = sessionStorage.getItem("authenticatedUser");
     const userId = getCookie("userId");
@@ -39,33 +43,49 @@ export const PlaylistProvider = ({
   };
 
   // Add a new song to the feed
-  const addNewSong = (newSong) => {
-    setSongs((prevSongs) => [...prevSongs, newSong]);
+  const addNewSong = async (newSong) => {
+    try {
+      const response = await fetch("/api/songs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newSong),
+      });
+
+      if (!response.ok) throw new Error("Failed to add song");
+
+      const savedSong = await response.json();
+      setSongs((prevSongs) => [...prevSongs, savedSong.result]);
+      setSongsCount((prev) => prev + 1);
+      return savedSong.result;
+    } catch (error) {
+      console.error("Error adding song:", error);
+      throw error;
+    }
   };
 
   // Add a new playlist to the feed
-  const addNewPlaylist = (newPlaylist) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return;
-
-    setPlaylists((prevPlaylists) => [...prevPlaylists, newPlaylist]);
-
-    // Update users
-    setUsers((prevUsers) => {
-      const updatedUsers = prevUsers.map((user) => {
-        if (user.userId === parseInt(userId)) {
-          return {
-            ...user,
-            playlists: [...(user.playlists || []), newPlaylist],
-          };
-        }
-        return user;
+  const addNewPlaylist = async (newPlaylist) => {
+    try {
+      const response = await fetch("/api/playlists", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPlaylist),
       });
 
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      if (!response.ok) throw new Error("Failed to add playlist");
 
-      return updatedUsers;
-    });
+      const savedPlaylist = await response.json();
+      setPlaylists((prevPlaylists) => [...prevPlaylists, savedPlaylist.result]);
+      setPlaylistsCount((prev) => prev + 1);
+      return savedPlaylist.result;
+    } catch (error) {
+      console.error("Error adding playlist:", error);
+      throw error;
+    }
   };
 
   // Add a song to a playlist
@@ -82,18 +102,38 @@ export const PlaylistProvider = ({
   };
 
   // Remove song from playlist
-  const removeSongFromPlaylist = (playlistId, songId) => {
-    setPlaylists((prevPlaylists) => {
-      return prevPlaylists.map((playlist) => {
-        if (playlist.id === playlistId) {
-          return {
-            ...playlist,
-            songs: (playlist.songs || []).filter((id) => id !== songId),
-          };
-        }
-        return playlist;
+  const removeSongFromPlaylist = async (playlistId, songId) => {
+    try {
+      const playlist = playlists.find((p) => p.id === playlistId);
+      if (!playlist) throw new Error("Playlist not found");
+
+      const updatedSongs = (playlist.songs || []).filter((id) => id !== songId);
+
+      // Update on server
+      const response = await fetch(`/api/playlists/${playlistId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          songs: updatedSongs,
+        }),
       });
-    });
+
+      if (!response.ok) {
+        throw new Error("Failed to update playlist");
+      }
+
+      // Update local state
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((p) =>
+          p.id === playlistId ? { ...p, songs: updatedSongs } : p
+        )
+      );
+    } catch (error) {
+      console.error("Error removing song from playlist:", error);
+      throw error;
+    }
   };
 
   // Update playlist comments
@@ -141,6 +181,9 @@ export const PlaylistProvider = ({
   return (
     <PlaylistContext.Provider
       value={{
+        songsCount,
+        playlistsCount,
+        usersCount,
         songs,
         playlists,
         users,

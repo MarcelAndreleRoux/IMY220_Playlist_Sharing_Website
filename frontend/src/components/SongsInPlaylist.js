@@ -4,9 +4,19 @@ import SpotifyEmbed from "./SpotifyEmbed";
 
 const SongsInPlaylist = ({ playlist, songs, removeSongFromPlaylist }) => {
   // Map song IDs from the playlist to actual song objects
-  const playlistSongs = playlist.songs
+  const playlistSongs = (playlist.songs || [])
     .map((songId) => songs.find((song) => song.id === songId))
-    .filter((song) => song);
+    .filter((song) => song); // Filter out undefined songs
+
+  const handleRemoveSong = async (songId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to remove this song from the playlist?"
+      )
+    ) {
+      await removeSongFromPlaylist(songId);
+    }
+  };
 
   return (
     <>
@@ -38,7 +48,7 @@ const SongsInPlaylist = ({ playlist, songs, removeSongFromPlaylist }) => {
 
               <button
                 className="btn btn-danger ms-3"
-                onClick={() => removeSongFromPlaylist(song.id)}
+                onClick={() => handleRemoveSong(song.id)}
               >
                 Remove from Playlist
               </button>

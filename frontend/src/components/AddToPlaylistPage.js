@@ -4,8 +4,10 @@ import { PlaylistContext } from "../context/PlaylistContext";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
 
 const AddToPlaylistPage = () => {
-  const { genres, addNewPlaylist, users, setUsers } =
-    useContext(PlaylistContext);
+  const { genres, setUsers, setPlaylists } = useContext(PlaylistContext);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const nameRef = useRef(null);
   const genreRef = useRef(null);
@@ -13,75 +15,44 @@ const AddToPlaylistPage = () => {
   const descriptionRef = useRef(null);
   const hashtagsRef = useRef(null);
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [playlistCount, setPlaylistCount] = useState(0); // To store the playlist count
-  const navigate = useNavigate();
-
-  // Fetch playlist count on component mount
-  useEffect(() => {
-    const fetchPlaylistCount = async () => {
-      try {
-        const response = await fetch("/api/playlists", { method: "GET" });
-        const playlists = await response.json(); // Assuming API returns a list of playlists
-        setPlaylistCount(playlists.length); // Set the count based on response length
-      } catch (error) {
-        console.error("Error fetching playlist count:", error);
-        setError("Failed to fetch playlist count.");
-      }
-    };
-
-    fetchPlaylistCount();
-  }, []);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-
-    // default name should be displayed if nothing is given
-    const name = nameRef.current.value;
-    // default genre should be given
-    const genre = genreRef.current.value;
-    // get a random cover image or default cover image if nothing is given
-    const coverImage = coverImageRef.current.value;
-    const description = descriptionRef.current.value || "";
-    const hashtags = hashtagsRef.current.value || "";
-
-    const authenticatedUser = JSON.parse(
-      localStorage.getItem("authenticatedUser")
-    );
-    const username = authenticatedUser?.username;
-
-    const currentUser = users.find((user) => user.username === username);
-
-    if (!name || !genre) {
-      setError("Please fill in all required fields (name and genre).");
-      setLoading(false);
-      return;
-    }
-
-    if (!currentUser) {
-      setError("User not found.");
-      setLoading(false);
-      return;
-    }
-
-    const newPlaylistId = playlistCount + 1;
-
-    const newPlaylist = {
-      id: newPlaylistId,
-      name,
-      genre,
-      coverImage: coverImage || DefaultImage,
-      description: description || "No description provided.",
-      creatorId: currentUser.userId,
-      hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
-      creationDate: new Date().toISOString(),
-      comments: [],
-      followers: [currentUser.userId],
-    };
+    setError("");
 
     try {
+      const authenticatedUser = JSON.parse(
+        sessionStorage.getItem("authenticatedUser")
+      );
+
+      if (!authenticatedUser) {
+        throw new Error("User not authenticated");
+      }
+
+      const name = nameRef.current.value || "New Playlist";
+      const genre = genreRef.current.value;
+      const coverImage = coverImageRef.current.value;
+      const description =
+        descriptionRef.current.value || "No description provided.";
+      const hashtags = hashtagsRef.current.value;
+
+      if (!genre) {
+        throw new Error("Please select a genre");
+      }
+
+      const newPlaylist = {
+        name,
+        genre,
+        coverImage: coverImage || DefaultImage,
+        description,
+        creatorId: authenticatedUser.userId,
+        hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
+        creationDate: new Date().toISOString(),
+        songs: [],
+        followers: [authenticatedUser.userId],
+        comments: [],
+      };
+
       const response = await fetch("/api/playlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,31 +60,54 @@ const AddToPlaylistPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save the playlist in the database.");
+        throw new Error("Failed to create playlist");
       }
 
       const savedPlaylist = await response.json();
 
-      // Update the current user's created_playlists array
+      // Update playlists context
+      setPlaylists((prevPlaylists) => [...prevPlaylists, savedPlaylist]);
+
+      // Update user's created_playlists array
       const updatedUser = {
-        ...currentUser,
+        ...authenticatedUser,
         created_playlists: [
-          ...(currentUser.created_playlists || []),
-          savedPlaylist.id,
+          ...(authenticatedUser.created_playlists || []),
+          newPlaylistId,
         ],
       };
 
-      // Update the users array
-      const updatedUsers = users.map((user) =>
-        user.username === username ? updatedUser : user
+      // Update user in the database
+      const userResponse = await fetch(
+        `/api/users/${authenticatedUser.userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            created_playlists: updatedUser.created_playlists,
+          }),
+        }
       );
 
-      setUsers(updatedUsers);
-      sessionStorage.setItem("users", JSON.stringify(updatedUsers));
+      if (!userResponse.ok) {
+        throw new Error("Failed to update user's playlists");
+      }
 
-      navigate(`/my_playlists/${username}`);
+      // Update users context and session storage
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.userId === authenticatedUser.userId ? updatedUser : user
+        )
+      );
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
+
+      // Navigate to the user's playlists page
+      navigate(`/my_playlists/${authenticatedUser.username}`);
     } catch (err) {
-      setError(err.message || "An error occurred while saving the playlist.");
+      setError(err.message || "Failed to create playlist");
+      console.error("Error creating playlist:", err);
     } finally {
       setLoading(false);
     }
@@ -197,7 +191,7 @@ const AddToPlaylistPage = () => {
         </button>
       </form>
 
-      <NavLink to="/playlistfeed" className="btn btn-link mt-3">
+      <NavLink to="/home?tab=playlists" className="btn btn-link mt-3">
         Back to Playlist List
       </NavLink>
     </div>

@@ -7,15 +7,15 @@ import AddPlaylistButton from "../components/AddPlaylistButton";
 
 const PlaylistFeed = () => {
   const { playlists, users, setUsers } = useContext(PlaylistContext);
-
   const authenticatedUser = JSON.parse(
-    localStorage.getItem("authenticatedUser")
+    sessionStorage.getItem("authenticatedUser")
   );
   const currentUser = users.find(
     (user) => user.username === authenticatedUser?.username
   );
 
   const [filteredPlaylists, setFilteredPlaylists] = useState(playlists);
+  const [sortBy, setSortBy] = useState("recent"); // 'recent', 'popular', 'name'
 
   const handleSearch = (searchTerm) => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -27,12 +27,17 @@ const PlaylistFeed = () => {
         ?.join(", ")
         .toLowerCase()
         .includes(lowercasedSearchTerm);
+      const genreMatch = playlist.genre
+        ?.toLowerCase()
+        .includes(lowercasedSearchTerm);
       const creator = users.find((user) => user.userId === playlist.creatorId);
       const creatorNameMatch = creator?.username
         ?.toLowerCase()
         .includes(lowercasedSearchTerm);
 
-      return playlistNameMatch || hashtagsMatch || creatorNameMatch;
+      return (
+        playlistNameMatch || hashtagsMatch || creatorNameMatch || genreMatch
+      );
     });
     setFilteredPlaylists(filteredPlaylists);
   };
@@ -72,11 +77,69 @@ const PlaylistFeed = () => {
     localStorage.setItem("users", JSON.stringify(updatedUsers));
   };
 
+  const handleSortChange = (sortType) => {
+    setSortBy(sortType);
+    let sortedPlaylists = [...filteredPlaylists];
+
+    switch (sortType) {
+      case "recent":
+        sortedPlaylists.sort(
+          (a, b) => new Date(b.creationDate) - new Date(a.creationDate)
+        );
+        break;
+      case "popular":
+        sortedPlaylists.sort(
+          (a, b) => (b.followers?.length || 0) - (a.followers?.length || 0)
+        );
+        break;
+      case "name":
+        sortedPlaylists.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      default:
+        break;
+    }
+
+    setFilteredPlaylists(sortedPlaylists);
+  };
+
   return (
     <>
       <NavBar />
       <div className="container mt-5">
-        <SearchBar onSearch={handleSearch} placeholder="Search Playlists..." />
+        <h1>Explore Playlists</h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder="Search by name, hashtag, or genre..."
+          />
+          <div className="btn-group">
+            <button
+              className={`btn btn-outline-primary ${
+                sortBy === "recent" ? "active" : ""
+              }`}
+              onClick={() => handleSortChange("recent")}
+            >
+              Most Recent
+            </button>
+            <button
+              className={`btn btn-outline-primary ${
+                sortBy === "popular" ? "active" : ""
+              }`}
+              onClick={() => handleSortChange("popular")}
+            >
+              Most Popular
+            </button>
+            <button
+              className={`btn btn-outline-primary ${
+                sortBy === "name" ? "active" : ""
+              }`}
+              onClick={() => handleSortChange("name")}
+            >
+              A-Z
+            </button>
+          </div>
+        </div>
+
         <div className="row">
           {filteredPlaylists.length > 0 ? (
             filteredPlaylists.map((playlist) => (
@@ -92,7 +155,11 @@ const PlaylistFeed = () => {
               />
             ))
           ) : (
-            <div>No Playlist Found.</div>
+            <div className="col-12 text-center">
+              <p className="text-muted">
+                No playlists found matching your search.
+              </p>
+            </div>
           )}
         </div>
       </div>

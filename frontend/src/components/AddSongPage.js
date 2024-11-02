@@ -98,7 +98,7 @@ const AddSongPage = () => {
         addNewSong(addedSong);
       }
 
-      navigate("/songfeed");
+      navigate("/home?tab=songs");
     } catch (err) {
       setError(err.message);
     }

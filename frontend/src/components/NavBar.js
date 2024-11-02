@@ -36,8 +36,8 @@ const NavBar = () => {
       <Link to="/home">
         <img width="100px" src={SightLogo} alt="home_logo" />
       </Link>
-      <Link to="/songfeed">Songs Feed</Link>
-      <Link to="/playlistfeed">Playlists Feed</Link>
+
+      <Link to="/playlistfeed">Explore</Link>
 
       <Link to={`/my_playlists/${username}`} onClick={handleMyPlaylistsClick}>
         My Playlist

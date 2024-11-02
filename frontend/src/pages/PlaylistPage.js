@@ -12,49 +12,120 @@ const PlaylistPage = () => {
 
   const playlist = playlists.find((pl) => pl.id === parseInt(playlistid)) || {
     songs: [],
+    followers: [],
+    hashtags: [],
   };
+
   const currentUser = JSON.parse(localStorage.getItem("authenticatedUser"));
-  const isCreator = currentUser?.created_playlists.includes(playlist.id);
+  const isCreator = currentUser?.created_playlists?.includes(playlist.id);
   const [isFollowing, setIsFollowing] = useState(
-    currentUser?.playlists.includes(playlist.id)
+    currentUser?.playlists?.includes(playlist.id)
   );
 
-  const handleFollow = () => {
-    const updatedUser = {
-      ...currentUser,
-      playlists: [...currentUser.playlists, playlist.id],
-    };
+  const handleFollow = async () => {
+    try {
+      // Update followers array in playlist
+      const response = await fetch(`/api/playlists/${playlist.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          followers: [...playlist.followers, authenticatedUser.userId],
+        }),
+      });
 
-    const updatedUsers = users.map((user) =>
-      user.userId === currentUser.userId ? updatedUser : user
-    );
+      if (!response.ok) throw new Error("Failed to follow playlist");
 
-    const updatedPlaylist = {
-      ...playlist,
-      followers: [...playlist.followers, currentUser.userId],
-    };
-    setPlaylists((prev) =>
-      prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
-    );
-    setIsFollowing(true);
+      // Update user's playlists array
+      const userResponse = await fetch(
+        `/api/users/${authenticatedUser.userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            playlists: [...authenticatedUser.playlists, playlist.id],
+          }),
+        }
+      );
+
+      if (!userResponse.ok) throw new Error("Failed to update user playlists");
+
+      const updatedUser = await userResponse.json();
+
+      // Update local state
+      const updatedPlaylist = {
+        ...playlist,
+        followers: [...playlist.followers, authenticatedUser.userId],
+      };
+
+      setPlaylists((prev) =>
+        prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
+      );
+
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
+      setIsFollowing(true);
+    } catch (err) {
+      console.error("Error following playlist:", err);
+    }
   };
 
-  const handleUnfollow = () => {
-    const updatedUser = {
-      ...currentUser,
-      playlists: currentUser.playlists.filter((id) => id !== playlist.id),
-    };
-    const updatedUsers = users.map((user) =>
-      user.userId === currentUser.userId ? updatedUser : user
-    );
-    const updatedPlaylist = {
-      ...playlist,
-      followers: playlist.followers.filter((id) => id !== currentUser.userId),
-    };
-    setPlaylists((prev) =>
-      prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
-    );
-    setIsFollowing(false);
+  const handleUnfollow = async () => {
+    try {
+      // Update followers array in playlist
+      const response = await fetch(`/api/playlists/${playlist.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          followers: playlist.followers.filter(
+            (id) => id !== authenticatedUser.userId
+          ),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to unfollow playlist");
+
+      // Update user's playlists array
+      const userResponse = await fetch(
+        `/api/users/${authenticatedUser.userId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            playlists: authenticatedUser.playlists.filter(
+              (id) => id !== playlist.id
+            ),
+          }),
+        }
+      );
+
+      if (!userResponse.ok) throw new Error("Failed to update user playlists");
+
+      const updatedUser = await userResponse.json();
+
+      // Update local state
+      const updatedPlaylist = {
+        ...playlist,
+        followers: playlist.followers.filter(
+          (id) => id !== authenticatedUser.userId
+        ),
+      };
+
+      setPlaylists((prev) =>
+        prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
+      );
+
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
+      setIsFollowing(false);
+    } catch (err) {
+      console.error("Error unfollowing playlist:", err);
+    }
   };
 
   return (
@@ -85,7 +156,7 @@ const PlaylistPage = () => {
                   ))
                 : ""}
             </div>
-            <p>{playlist.followers.length} Followers</p>
+            <p>{(playlist.followers || []).length} Followers</p>
             <div className="mt-4">
               {isCreator ? (
                 <Link to={`/edit_playlist/${playlist.id}`}>
@@ -107,9 +178,13 @@ const PlaylistPage = () => {
         <SongsInPlaylist
           playlist={playlist}
           songs={songs}
-          removeSongFromPlaylist={(songId) =>
-            removeSongFromPlaylist(playlist.id, songId)
-          }
+          removeSongFromPlaylist={async (songId) => {
+            try {
+              await removeSongFromPlaylist(playlist.id, songId);
+            } catch (err) {
+              console.error("Failed to remove song:", err);
+            }
+          }}
         />
 
         <CommentsSection

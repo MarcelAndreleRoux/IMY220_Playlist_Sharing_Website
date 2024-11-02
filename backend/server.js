@@ -33,6 +33,51 @@ async function connectToMongoDB() {
   }
 }
 
+async function initializeSequences() {
+  try {
+    const database = client.db(dbName);
+    const sequencesCollection = database.collection("sequences");
+
+    // Initialize sequence counters if they don't exist
+    await sequencesCollection.updateMany(
+      {},
+      {
+        $setOnInsert: {
+          _id: "userId",
+          sequence_value: 4,
+        },
+      },
+      { upsert: true }
+    );
+
+    await sequencesCollection.updateMany(
+      {},
+      {
+        $setOnInsert: {
+          _id: "songId",
+          sequence_value: 5,
+        },
+      },
+      { upsert: true }
+    );
+
+    await sequencesCollection.updateMany(
+      {},
+      {
+        $setOnInsert: {
+          _id: "playlistId",
+          sequence_value: 7,
+        },
+      },
+      { upsert: true }
+    );
+
+    console.log("Sequences initialized");
+  } catch (error) {
+    console.error("Error initializing sequences:", error);
+  }
+}
+
 // --------------------------------------------------- CRUD ---------------------------------------------------
 
 // CREATE
@@ -117,9 +162,19 @@ app.get("/api/users", async (req, res) => {
 app.post("/api/users", async (req, res) => {
   try {
     const newUser = req.body;
-    newUser.userId = await getNextSequenceValue("userId");
-    const result = await runInsertQuery("users", newUser);
 
+    // next user ID
+    const nextUserId = await getNextSequenceValue("userId");
+    newUser.userId = nextUserId;
+
+    // default values
+    newUser.friends = [];
+    newUser.playlists = [];
+    newUser.created_playlists = [];
+    newUser.profilePic =
+      "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+
+    const result = await runInsertQuery("users", newUser);
     res.status(201).json({ message: "User added!", result });
   } catch (error) {
     console.error("Error posting users:", error);
@@ -204,8 +259,16 @@ app.get("/api/songs", async (req, res) => {
 app.post("/api/songs", async (req, res) => {
   try {
     const newSong = req.body;
-    const result = await runInsertQuery("songs", newSong);
 
+    // next song ID
+    const nextSongId = await getNextSequenceValue("songId");
+    newSong.id = nextSongId;
+
+    // default values
+    newSong.addedToPlaylistsCount = 0;
+    newSong.isDeleted = false;
+
+    const result = await runInsertQuery("songs", newSong);
     res.status(201).json({ message: "Song added!", result });
   } catch (error) {
     console.error("Error posting song:", error);
@@ -291,8 +354,18 @@ app.get("/api/playlists", async (req, res) => {
 app.post("/api/playlists", async (req, res) => {
   try {
     const newPlaylist = req.body;
-    const result = await runInsertQuery("playlists", newPlaylist);
 
+    // next playlist ID
+    const nextPlaylistId = await getNextSequenceValue("playlistId");
+    newPlaylist.id = nextPlaylistId;
+
+    // default values
+    newPlaylist.songs = [];
+    newPlaylist.comments = [];
+    newPlaylist.followers = [newPlaylist.creatorId];
+    newPlaylist.creationDate = new Date().toISOString();
+
+    const result = await runInsertQuery("playlists", newPlaylist);
     res.status(201).json({ message: "Playlist added!", result });
   } catch (error) {
     console.error("Error posting playlists:", error);
@@ -362,5 +435,6 @@ app.get("*", (req, res) => {
 // Start the server
 app.listen(PORT, async () => {
   await connectToMongoDB();
+  await initializeSequences();
   console.log(`Server is running on http://localhost:${PORT}/`);
 });

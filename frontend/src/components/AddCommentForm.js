@@ -6,18 +6,21 @@ const AddCommentForm = ({ playlistId, setPlaylists }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
   const dropRef = useRef(null);
+  const authenticatedUser = JSON.parse(
+    sessionStorage.getItem("authenticatedUser")
+  );
 
   const handleDrop = (e) => {
     e.preventDefault();
+
     const file = e.dataTransfer.files[0];
+
     if (file) {
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleDragOver = (e) => e.preventDefault();
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!commentText || stars === 0) {
@@ -27,24 +30,41 @@ const AddCommentForm = ({ playlistId, setPlaylists }) => {
 
     const newComment = {
       id: Date.now(),
-      userId: JSON.parse(localStorage.getItem("authenticatedUser")).userId,
+      userId: authenticatedUser.userId,
       text: commentText,
       stars,
       image: imagePreview,
       likes: 0,
     };
 
-    setPlaylists((prevPlaylists) =>
-      prevPlaylists.map((pl) =>
-        pl.id === playlistId
-          ? { ...pl, comments: [...pl.comments, newComment] }
-          : pl
-      )
-    );
+    try {
+      const response = await fetch(`/api/playlists/${playlistId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          $push: { comments: newComment },
+        }),
+      });
 
-    setCommentText("");
-    setStars(0);
-    setImagePreview(null);
+      if (!response.ok) {
+        throw new Error("Failed to add comment");
+      }
+
+      const updatedPlaylist = await response.json();
+
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((pl) => (pl.id === playlistId ? updatedPlaylist : pl))
+      );
+
+      setCommentText("");
+      setStars(0);
+      setImagePreview(null);
+      setError("");
+    } catch (err) {
+      setError("Failed to add comment: " + err.message);
+    }
   };
 
   return (

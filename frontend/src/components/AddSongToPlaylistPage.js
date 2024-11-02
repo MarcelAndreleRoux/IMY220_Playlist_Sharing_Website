@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useContext } from "react";
 import { PlaylistContext } from "../context/PlaylistContext";
 import NavBar from "./NavBar";
@@ -41,21 +41,24 @@ const AddSongToPlaylistPage = () => {
         throw new Error("Playlist not found");
       }
 
+      // Add null check and default to empty array if songs is undefined
+      const currentSongs = playlist.songs || [];
+
       // Check if song is already in playlist
-      const songAlreadyInPlaylist = playlist.songs?.includes(selectedSong.id);
+      const songAlreadyInPlaylist = currentSongs.includes(selectedSong.id);
       if (songAlreadyInPlaylist) {
         navigate(`/playlist/${playlistId}`);
         return;
       }
 
-      // Add song to playlist
+      // Add song to playlist, using the currentSongs array we validated above
       const response = await fetch(`/api/playlists/${playlistId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          songs: [...playlist.songs, selectedSong.id],
+          songs: [...currentSongs, selectedSong.id],
         }),
       });
 
@@ -77,6 +80,7 @@ const AddSongToPlaylistPage = () => {
       navigate(`/playlist/${playlistId}`);
     } catch (err) {
       setError(err.message);
+      console.error("Error adding song to playlist:", err);
     }
   };
 
@@ -85,7 +89,7 @@ const AddSongToPlaylistPage = () => {
       <NavBar />
       <div className="container mt-5">
         {error && <div className="alert alert-danger">{error}</div>}
-        <>
+        <div>
           <h1>Add "{selectedSong.name}" to Your Playlist</h1>
           <h3>Select a Playlist:</h3>
 
@@ -100,8 +104,11 @@ const AddSongToPlaylistPage = () => {
                     <button
                       className="btn btn-primary"
                       onClick={() => handleAddSong(playlist.id)}
+                      disabled={(playlist.songs || []).includes(
+                        selectedSong.id
+                      )}
                     >
-                      {playlist.songs?.includes(selectedSong.id)
+                      {(playlist.songs || []).includes(selectedSong.id)
                         ? "Already in Playlist"
                         : `Add to ${playlist.name}`}
                     </button>
@@ -116,7 +123,7 @@ const AddSongToPlaylistPage = () => {
               </Link>
             </div>
           )}
-        </>
+        </div>
       </div>
     </>
   );

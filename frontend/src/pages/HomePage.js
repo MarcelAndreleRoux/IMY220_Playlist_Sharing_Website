@@ -1,255 +1,215 @@
-import React, { useContext, useState, useEffect, useMemo } from "react";
+import React, { useContext, useState } from "react";
 import { PlaylistContext } from "../context/PlaylistContext";
 import NavBar from "../components/NavBar";
 import SearchBar from "../components/SreachBar";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import SpotifyEmbed from "../components/SpotifyEmbed";
-import { Link, Navigate } from "react-router-dom";
 
 export const HomePage = () => {
   const { playlists, songs, users, authenticatedUser } =
     useContext(PlaylistContext);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") || "songs"
+  );
 
-  const [filteredResults] = useMemo(() => {
-    return {
-      songs: songs.map((song) => ({
-        ...song,
-        isDeleted: song.isDeleted || false,
-      })),
-      playlists: playlists,
-    };
-  }, [songs, playlists]);
+  // Get current user's friends
+  const userFriends = authenticatedUser ? authenticatedUser.friends || [] : [];
 
-  const [topPlaylists, setTopPlaylists] = useState([]);
-  const [topSongs, setTopSongs] = useState([]);
+  // Filter playlists to only show those from friends and followed playlists
+  const friendsPlaylists = playlists.filter((playlist) => {
+    const isCreatedByFriend = userFriends.includes(playlist.creatorId);
+    const isFollowedByUser = authenticatedUser?.playlists?.includes(
+      playlist.id
+    );
+    return isCreatedByFriend || isFollowedByUser;
+  });
 
-  // useMemo Allows me to stop rerenders from happeing every frame as the valuesare cached between re-renders
-  const friendsPlaylists = useMemo(() => {
-    return authenticatedUser
-      ? playlists.filter((playlist) =>
-          authenticatedUser.friends?.includes(
-            users.find((user) => user.userId === playlist.creatorId)?.userId
-          )
-        )
-      : [];
-  }, [authenticatedUser, playlists, users]);
+  const [filteredResults, setFilteredResults] = useState({
+    songs: songs.filter((song) => !song.isDeleted),
+    playlists: friendsPlaylists,
+  });
 
-  const friendsSongs = useMemo(() => {
-    return authenticatedUser
-      ? songs.filter((song) =>
-          authenticatedUser.friends?.includes(
-            users.find((user) => user.userId === song.creatorId)?.userId
-          )
-        )
-      : [];
-  }, [authenticatedUser, songs, users]);
-
-  // Calculate top playlists and top songs
-  useEffect(() => {
-    if (friendsPlaylists.length > 0) {
-      setTopPlaylists(
-        [...friendsPlaylists]
-          .sort((a, b) => b.followers.length - a.followers.length)
-          .slice(0, 5)
-      );
-    }
-
-    if (friendsSongs.length > 0) {
-      setTopSongs(
-        [...friendsSongs]
-          .sort((a, b) => b.addedToPlaylistsCount - a.addedToPlaylistsCount)
-          .slice(0, 10)
-      );
-    }
-  }, [friendsPlaylists, friendsSongs]);
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   if (!authenticatedUser) {
     return <Navigate to="/login" replace />;
   }
 
   const handleSearch = (searchTerm) => {
-    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    const lowercasedTerm = searchTerm.toLowerCase();
 
-    // Helper function to check if a string contains the search term
-    const matchesSearchTerm = (str) =>
-      str?.toLowerCase().includes(lowercasedSearchTerm);
-
-    // Find matching users
-    const matchingUsers = users.filter(
-      (user) => matchesSearchTerm(user.username) || matchesSearchTerm(user.name)
-    );
-    const userIds = matchingUsers.map((user) => user.userId);
-
-    // Find matching songs (including deleted ones, but mark them)
-    const matchingSongs = songs.filter(
-      (song) =>
-        (!song.isDeleted || searchTerm.startsWith("#")) && // Only include non-deleted songs unless searching hashtags
-        (matchesSearchTerm(song.name) || matchesSearchTerm(song.artist))
-    );
-    const songIds = matchingSongs.map((song) => song.id);
-
-    // Find playlists containing matching songs
-    const playlistsWithMatchingSongs = playlists.filter((playlist) =>
-      playlist.songs?.some((songId) => songIds.includes(songId))
-    );
-
-    // Find matching playlists
-    const matchingPlaylists = playlists.filter((playlist) => {
-      // Check if creator matches
-      const creatorMatch = userIds.includes(playlist.creatorId);
-
-      // Check if name matches
-      const nameMatch = matchesSearchTerm(playlist.name);
-
-      // Check if genre matches
-      const genreMatch = matchesSearchTerm(playlist.genre);
-
-      // Check hashtags - both in search term and playlist hashtags
-      const hashtagMatch = searchTerm.startsWith("#")
-        ? playlist.hashtags?.some(
-            (tag) => matchesSearchTerm(tag) || matchesSearchTerm("#" + tag)
-          )
-        : playlist.hashtags?.some((tag) => matchesSearchTerm(tag));
-
-      // Check if playlist contains any matching songs
-      const containsMatchingSong =
-        playlistsWithMatchingSongs.includes(playlist);
-
-      // Return true if any criteria matches
-      return (
-        creatorMatch ||
-        nameMatch ||
-        genreMatch ||
-        hashtagMatch ||
-        containsMatchingSong
+    if (activeTab === "songs") {
+      const filteredSongs = songs.filter(
+        (song) =>
+          !song.isDeleted &&
+          (song.name.toLowerCase().includes(lowercasedTerm) ||
+            song.artist.toLowerCase().includes(lowercasedTerm))
       );
-    });
-
-    setFilteredResults({
-      songs: matchingSongs,
-      playlists: matchingPlaylists,
-      users: matchingUsers,
-    });
+      setFilteredResults((prev) => ({ ...prev, songs: filteredSongs }));
+    } else {
+      // Filter within friends' playlists only
+      const filteredPlaylists = friendsPlaylists.filter(
+        (playlist) =>
+          playlist.name.toLowerCase().includes(lowercasedTerm) ||
+          playlist.hashtags?.some((tag) =>
+            tag.toLowerCase().includes(lowercasedTerm)
+          )
+      );
+      setFilteredResults((prev) => ({ ...prev, playlists: filteredPlaylists }));
+    }
   };
+
+  const playlistsFeedDescription =
+    "Activity from friends and followed playlists";
 
   return (
     <>
       <NavBar />
       <div className="container mt-5">
-        <SearchBar
-          onSearch={handleSearch}
-          placeholder="Search for Songs, Playlists, or Users..."
-        />
-
-        <div className="row mt-5">
-          <h3>All Songs</h3>
-          {filteredResults.songs.map((song) => (
-            <div key={song.id} className="col-md-4 mb-4">
-              <div className={`card ${song.isDeleted ? "bg-light" : ""}`}>
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <Link to={`/song/${song.id}`}>{song.name}</Link>
-                    {song.isDeleted && (
-                      <span className="badge bg-secondary ms-2">Deleted</span>
-                    )}
-                  </h5>
-                  <p>Artist: {song.artist}</p>
-                  <p>Added to Playlists: {song.addedToPlaylistsCount}</p>
-                  {!song.isDeleted ? (
-                    <>
-                      <SpotifyEmbed songLink={song.link} />
-                      <Link
-                        to={`/addtoplaylist/${song.id}`}
-                        className="btn btn-primary mt-2"
-                      >
-                        Add to Playlist
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="text-muted">Song no longer available</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div
+          className="mb-4"
+          style={{
+            backgroundColor: "#8e44ad",
+            padding: "20px",
+            borderRadius: "8px",
+          }}
+        >
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder={`Search ${
+              activeTab === "songs" ? "Songs" : "Playlists"
+            }...`}
+          />
         </div>
 
-        <div className="row mt-5">
-          <h3>All Playlists</h3>
-          {filteredResults.playlists.length > 0 ? (
-            filteredResults.playlists.map((playlist) => (
-              <div key={playlist.id} className="col-md-4 mb-4">
-                <div className="card">
-                  <Link to={`/playlist/${playlist.id}`}>
-                    <img
-                      src={playlist.coverImage}
-                      className="card-img-top"
-                      alt={playlist.name}
-                      style={{ height: "200px", objectFit: "cover" }}
-                    />
-                  </Link>
-                  <div className="card-body">
-                    <h5 className="card-title">
-                      <Link to={`/playlist/${playlist.id}`}>
-                        {playlist.name}
-                      </Link>
-                    </h5>
-                    <p>Followers: {playlist.followers.length}</p>
-                    <p>
-                      Created by:{" "}
-                      {users.find((user) => user.userId === playlist.creatorId)
-                        ?.username || "Unknown"}
-                    </p>
+        <div className="d-flex mb-4">
+          <button
+            className={`btn ${
+              activeTab === "songs" ? "btn-danger" : "btn-outline-danger"
+            } flex-grow-1 me-2`}
+            onClick={() => handleTabChange("songs")}
+          >
+            Songs Feed
+          </button>
+          <button
+            className={`btn ${
+              activeTab === "playlists" ? "btn-primary" : "btn-outline-primary"
+            } flex-grow-1`}
+            onClick={() => handleTabChange("playlists")}
+          >
+            Friends' Activity
+          </button>
+        </div>
+
+        {activeTab === "playlists" && (
+          <p className="text-muted mb-4">{playlistsFeedDescription}</p>
+        )}
+
+        <div className="row">
+          {activeTab === "songs"
+            ? // Songs Feed
+              filteredResults.songs.map((song) => (
+                <div key={song.id} className="col-md-4 mb-3">
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <h5 className="card-title">{song.name}</h5>
+                      <h6 className="card-subtitle mb-2 text-muted">
+                        {song.artist}
+                      </h6>
+                      <SpotifyEmbed songLink={song.link} />
+                      <p>
+                        Added by:{" "}
+                        {
+                          users.find((u) => u.userId === song.creatorId)
+                            ?.username
+                        }
+                      </p>
+                      <p>Added to {song.addedToPlaylistsCount} playlists</p>
+                      <div className="mt-2">
+                        <Link
+                          to={`/song/${song.id}`}
+                          className="btn btn-secondary btn-sm me-2"
+                        >
+                          View Details
+                        </Link>
+                        <Link
+                          to={`/addtoplaylist/${song.id}`}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Add to Playlist
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p>No playlists found.</p>
-          )}
+              ))
+            : // Playlists Feed
+              filteredResults.playlists.map((playlist) => (
+                <div key={playlist.id} className="col-md-3 mb-4">
+                  <div className="card">
+                    <Link to={`/playlist/${playlist.id}`}>
+                      <img
+                        src={playlist.coverImage}
+                        alt={playlist.name}
+                        className="card-img-top"
+                        style={{ height: "160px", objectFit: "cover" }}
+                      />
+                    </Link>
+                    <div className="card-body">
+                      <h5 className="card-title">
+                        <Link
+                          to={`/playlist/${playlist.id}`}
+                          className="text-decoration-none"
+                        >
+                          {playlist.name}
+                        </Link>
+                      </h5>
+                      <p className="card-text">
+                        By{" "}
+                        {
+                          users.find((u) => u.userId === playlist.creatorId)
+                            ?.username
+                        }
+                      </p>
+                      <p className="card-text">
+                        {playlist.followers?.length || 0} Followers
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
         </div>
 
-        <div className="row mt-5">
-          <h3>Top 5 Playlists</h3>
-          {topPlaylists.map((playlist) => (
-            <div key={playlist.id} className="col-md-4 mb-4">
-              <div className="card">
-                <Link to={`/playlist/${playlist.id}`}>
-                  <img
-                    src={playlist.coverImage}
-                    className="card-img-top"
-                    alt={playlist.name}
-                    style={{ height: "200px", objectFit: "cover" }}
-                  />
-                </Link>
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <Link to={`/playlist/${playlist.id}`}>{playlist.name}</Link>
-                  </h5>
-                  <p>Followers: {playlist.followers.length}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="row mt-5">
-          <h3>Top 10 Songs</h3>
-          {topSongs.map((song) => (
-            <div key={song.id} className="col-md-4 mb-4">
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <Link to={`/song/${song.id}`}>{song.name}</Link>
-                  </h5>
-                  <p>Artist: {song.artist}</p>
-                  <p>Added to Playlists: {song.addedToPlaylistsCount}</p>
-                  <SpotifyEmbed songLink={song.link} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <Link to="/addsong" className="add-song-btn">
+          Add Song
+        </Link>
       </div>
+
+      <style>{`
+        .add-song-btn {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background-color: #28a745;
+          color: white;
+          padding: 15px 20px;
+          border-radius: 50px;
+          text-align: center;
+          font-size: 18px;
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+          z-index: 1000;
+          text-decoration: none;
+        }
+        .add-song-btn:hover {
+          background-color: #218838;
+          color: white;
+          text-decoration: none;
+        }
+      `}</style>
     </>
   );
 };

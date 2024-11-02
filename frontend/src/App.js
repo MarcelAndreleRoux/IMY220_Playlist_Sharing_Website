@@ -135,10 +135,6 @@ export const App = () => {
       element: <PrivateRoute element={<AddSongToPlaylistPage />} />,
     },
     {
-      path: "/songfeed",
-      element: <PrivateRoute element={<SongsFeedPage />} />,
-    },
-    {
       path: "/playlistfeed",
       element: <PrivateRoute element={<PlaylistFeedPage />} />,
     },

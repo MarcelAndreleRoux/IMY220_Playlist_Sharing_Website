@@ -2,8 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const AddPlaylistButton = () => (
-  <Link to="/create_playlist" className="add-playlist-btn">
-    + Add Playlist
+  <Link
+    to="/create_playlist"
+    state={{ returnTo: "/home?tab=playlists" }}
+    className="add-playlist-btn"
+  >
+    Add Playlist
     <style jsx="true">{`
       .add-playlist-btn {
         position: fixed;

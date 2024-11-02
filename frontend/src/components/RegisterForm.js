@@ -17,7 +17,6 @@ const RegisterForm = () => {
   const validateUserInput = async (e) => {
     e.preventDefault();
 
-    const newUserId = users.length + 1;
     const username = usernameRef.current.value.trim();
     const email = emailRef.current.value.trim();
     const password = passwordRef.current.value.trim();
@@ -51,7 +50,6 @@ const RegisterForm = () => {
 
     try {
       const newUser = {
-        userId: newUserId,
         username,
         email,
         password,
