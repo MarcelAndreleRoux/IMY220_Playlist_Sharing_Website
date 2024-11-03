@@ -1,0 +1,195 @@
+[{
+  "_id": {
+    "$oid": "6726c3735d7f559ecfe9333c"
+  },
+  "name": "New Playlist #1",
+  "genre": "Hip Hop",
+  "coverImage": "https://cdn.prod.website-files.com/62d84e447b4f9e7263d31e94/6399a4d27711a5ad2c9bf5cd_ben-sweet-2LowviVHZ-E-unsplash-1.jpeg",
+  "description": "Something!!!!",
+  "creatorId": "6726203a4ffd67573412885e",
+  "hashtags": [
+    "#cool"
+  ],
+  "creationDate": "2024-11-03T00:27:31.964Z",
+  "songs": [
+    "67269e7f4ffd675734128869",
+    "67269a174ffd675734128865"
+  ],
+  "followers": [
+    "6726203a4ffd67573412885e",
+    "6727e72904533a271ab59894",
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6726c3c05d7f559ecfe9333d"
+  },
+  "name": "New Playlist #2",
+  "genre": "Hip Hop",
+  "coverImage": "https://letsenhance.io/static/8f5e523ee6b2479e26ecc91b9c25261e/1015f/MainAfter.jpg",
+  "description": "Something else !!!",
+  "creatorId": "6726203a4ffd67573412885e",
+  "hashtags": [],
+  "creationDate": "2024-11-03T00:28:48.871Z",
+  "songs": [
+    "672694ec4ffd675734128864"
+  ],
+  "followers": [
+    "6726203a4ffd67573412885e",
+    "67261bac9cb249cf3c67beaf",
+    "67278ce99771222d2e0d7066",
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6726c51c5d7f559ecfe9333e"
+  },
+  "name": "New Playlist #3",
+  "genre": "Pop",
+  "coverImage": "https://img.freepik.com/free-photo/funny-monkey-with-hat-studio_23-2150844087.jpg",
+  "description": "Something else else",
+  "creatorId": "6726203a4ffd67573412885e",
+  "hashtags": [
+    "#workout"
+  ],
+  "creationDate": "2024-11-03T00:34:36.717Z",
+  "songs": [],
+  "followers": [
+    "6726203a4ffd67573412885e",
+    "67278ce99771222d2e0d7066",
+    "67261bac9cb249cf3c67beaf",
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6726cd281d916f79b0959a9d"
+  },
+  "name": "Test",
+  "genre": "Country",
+  "coverImage": "/assets/uploads/playlists/playlist-1730654863850.jpg",
+  "description": "Cats Rule!!!",
+  "creatorId": "67261bac9cb249cf3c67beaf",
+  "hashtags": [
+    "#cat",
+    "#cool"
+  ],
+  "creationDate": "2024-11-03T01:08:56.979Z",
+  "songs": [
+    "672694ec4ffd675734128864",
+    "672629184ffd675734128863",
+    "67269a174ffd675734128865"
+  ],
+  "followers": [
+    "67261bac9cb249cf3c67beaf",
+    "67261bb89cb249cf3c67c2a3"
+  ],
+  "comments": [
+    {
+      "text": "Test!!!",
+      "createdAt": "2024-11-03T16:53:16.474Z",
+      "_id": "6727aa7c81da065fddc81bd1",
+      "image": "/assets/uploads/comments/comment-1730652796444.jpg",
+      "likes": 3,
+      "likedBy": [
+        "67261bb89cb249cf3c67c2a3",
+        "6726203a4ffd67573412885e",
+        "67261bac9cb249cf3c67beaf"
+      ],
+      "isPinned": true
+    },
+    {
+      "text": "Amazing!!!",
+      "createdAt": "2024-11-03T16:57:24.932Z",
+      "_id": "6727ab74eb5767efd6cf72ae",
+      "image": null,
+      "likes": 0,
+      "likedBy": [],
+      "isPinned": false
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67279f1fff204ea554f1aba0"
+  },
+  "name": "New Playlist #1",
+  "genre": "Hip Hop",
+  "coverImage": "https://images.unsplash.com/photo-1454023492550-5696f8ff10e1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8fA%3D%3D",
+  "description": "No description provided.",
+  "creatorId": "67278ce99771222d2e0d7066",
+  "hashtags": [],
+  "creationDate": "2024-11-03T16:04:47.354Z",
+  "songs": [],
+  "followers": [
+    "67278ce99771222d2e0d7066",
+    "67261bac9cb249cf3c67beaf",
+    "6726203a4ffd67573412885e"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6727b378432f2fbb7a84db32"
+  },
+  "name": "New Playlist #3",
+  "genre": "Hip Hop",
+  "coverImage": "/assets/uploads/playlists/playlist-1730655096982.jpg",
+  "description": "No description provided.",
+  "creatorId": "67261bac9cb249cf3c67beaf",
+  "hashtags": [],
+  "creationDate": "2024-11-03T17:31:36.987Z",
+  "songs": [],
+  "followers": [
+    "67261bac9cb249cf3c67beaf",
+    "6726203a4ffd67573412885e",
+    "6727e72904533a271ab59894"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6727f0546068b3acd8563ec3"
+  },
+  "name": "New Playlist #1",
+  "genre": "Hip Hop",
+  "coverImage": "/assets/uploads/playlists/playlist-1730670676201.jpg",
+  "description": "No description provided.",
+  "creatorId": "6727f01d6068b3acd8563ec1",
+  "hashtags": [],
+  "creationDate": "2024-11-03T21:51:16.205Z",
+  "songs": [
+    "67269a174ffd675734128865",
+    "672629184ffd675734128863"
+  ],
+  "followers": [
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "comments": []
+},
+{
+  "_id": {
+    "$oid": "6727f05e6068b3acd8563ec4"
+  },
+  "name": "New Playlist #2",
+  "genre": "Jazz",
+  "coverImage": "/assets/uploads/playlists/playlist-1730670686199.jpg",
+  "description": "No description provided.",
+  "creatorId": "6727f01d6068b3acd8563ec1",
+  "hashtags": [],
+  "creationDate": "2024-11-03T21:51:26.203Z",
+  "songs": [
+    "67269d874ffd675734128868",
+    "67269c284ffd675734128867",
+    "67269ba24ffd675734128866"
+  ],
+  "followers": [
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "comments": []
+}]

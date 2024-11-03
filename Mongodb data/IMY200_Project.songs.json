@@ -1,0 +1,108 @@
+[{
+  "_id": {
+    "$oid": "672629184ffd675734128863"
+  },
+  "name": "Go Again",
+  "artist": "Jeremy Loops",
+  "link": "https://open.spotify.com/track/6e5V175wyWLhOyLoM7E4WW",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 5,
+  "addedToPlaylistsCount": 2,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "672694ec4ffd675734128864"
+  },
+  "name": "Fado",
+  "artist": "Milky Chance",
+  "link": "https://open.spotify.com/track/5MX4VZkiJafcUk5gCZ0cil?si=8a8f7fcd00574c53",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 6,
+  "addedToPlaylistsCount": 3,
+  "isDeleted": true
+},
+{
+  "_id": {
+    "$oid": "67269a174ffd675734128865"
+  },
+  "name": "Loveblood",
+  "artist": "Jeremy Loops",
+  "link": "https://open.spotify.com/track/4qjKjPZfxf4Q92aZOCcMRh?si=b40d47165f434fe2",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 7,
+  "addedToPlaylistsCount": 3,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "67269ba24ffd675734128866"
+  },
+  "name": "Scarlet Paintings",
+  "artist": "Milky Chance",
+  "link": "https://open.spotify.com/track/41UBTzyPAbtkge6aWVr7Uy?si=75ed58680dfc464a",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 8,
+  "addedToPlaylistsCount": 1,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "67269c284ffd675734128867"
+  },
+  "name": "Pink + White",
+  "artist": "Frank Ocean",
+  "link": "https://open.spotify.com/track/3xKsf9qdS1CyvXSMEid6g8?si=757dbfa10e7e4e55",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 9,
+  "addedToPlaylistsCount": 1,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "67269d874ffd675734128868"
+  },
+  "name": "Stranger on A Train",
+  "artist": "SUPER-Hi",
+  "link": "https://open.spotify.com/track/2o9o4Pg4h3Wp8L0R9CTGws?si=e19ea7a82eee458a",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 10,
+  "addedToPlaylistsCount": 2,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "67269e7f4ffd675734128869"
+  },
+  "name": "So Young",
+  "artist": "Portugal. The Man",
+  "link": "https://open.spotify.com/track/4SNtyKNyYJ8ERT7YLlnFBr?si=f1a278ff8e6b482c",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 11,
+  "addedToPlaylistsCount": 1,
+  "isDeleted": true
+},
+{
+  "_id": {
+    "$oid": "6726a00d4ffd67573412886a"
+  },
+  "name": "Back To You",
+  "artist": "Saco",
+  "link": "https://open.spotify.com/track/3v7ChHdkE98nUt7Y6ewue3?si=b944d55090ad4325",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 12,
+  "addedToPlaylistsCount": 0,
+  "isDeleted": false
+},
+{
+  "_id": {
+    "$oid": "6726a21a4ffd67573412886b"
+  },
+  "name": "Maybe October",
+  "artist": "Dekker",
+  "link": "https://open.spotify.com/track/2ou8EQgoiqk73toLQrEIsc?si=345420c684214d63",
+  "creatorId": "6726203a4ffd67573412885e",
+  "id": 13,
+  "addedToPlaylistsCount": 1,
+  "isDeleted": false
+}]

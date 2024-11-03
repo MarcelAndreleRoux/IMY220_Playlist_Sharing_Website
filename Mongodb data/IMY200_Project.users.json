@@ -1,0 +1,170 @@
+[{
+  "_id": {
+    "$oid": "67261b9d9cb249cf3c67b945"
+  },
+  "username": "test1",
+  "email": "test1@gmail.com",
+  "password": "Test1111#",
+  "friends": [],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+  "playlists": [],
+  "created_playlists": []
+},
+{
+  "_id": {
+    "$oid": "67261bac9cb249cf3c67beaf"
+  },
+  "username": "test2",
+  "email": "test2@gmail.com",
+  "password": "Test2222#",
+  "friends": [
+    "6726203a4ffd67573412885e",
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+  "playlists": [
+    "6726cd281d916f79b0959a9d",
+    "6726c3c05d7f559ecfe9333d",
+    "67277ec59771222d2e0d7065",
+    "6727b378432f2fbb7a84db32",
+    "6726c51c5d7f559ecfe9333e",
+    "67279f1fff204ea554f1aba0"
+  ],
+  "created_playlists": [
+    "6726cd281d916f79b0959a9d",
+    "67277ec59771222d2e0d7065",
+    "6727b378432f2fbb7a84db32"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67261bb89cb249cf3c67c2a3"
+  },
+  "username": "test3",
+  "email": "test3@gmail.com",
+  "password": "Test3333#",
+  "friends": [],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+  "playlists": [
+    "6726cd281d916f79b0959a9d"
+  ],
+  "created_playlists": []
+},
+{
+  "_id": {
+    "$oid": "6726203a4ffd67573412885e"
+  },
+  "username": "test4",
+  "email": "test4@gmail.com",
+  "password": "Test4444#",
+  "friends": [
+    "67261bac9cb249cf3c67beaf",
+    "6727e72904533a271ab59894",
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "playlists": [
+    "6726c3735d7f559ecfe9333c",
+    "6726c3c05d7f559ecfe9333d",
+    "6726c51c5d7f559ecfe9333e",
+    "6727b378432f2fbb7a84db32",
+    "67279f1fff204ea554f1aba0"
+  ],
+  "created_playlists": [
+    "6726c3735d7f559ecfe9333c",
+    "6726c3c05d7f559ecfe9333d",
+    "6726c51c5d7f559ecfe9333e"
+  ],
+  "profilePic": "/assets/uploads/profiles/profile-1730663786282.jpg",
+  "bio": "I'm him!!!!!!!!!!!!!!!!!",
+  "pronouns": "Hi/Him/Other",
+  "socialLinks": "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+},
+{
+  "_id": {
+    "$oid": "67278ce99771222d2e0d7066"
+  },
+  "username": "test5",
+  "email": "test5@gmail.com",
+  "password": "Test5555#",
+  "friends": [
+    "6727f01d6068b3acd8563ec1"
+  ],
+  "playlists": [
+    "6726c3c05d7f559ecfe9333d",
+    "6726c51c5d7f559ecfe9333e",
+    "67279f1fff204ea554f1aba0"
+  ],
+  "created_playlists": [
+    "67279f1fff204ea554f1aba0"
+  ],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+},
+{
+  "_id": {
+    "$oid": "6727e72904533a271ab59894"
+  },
+  "username": "test6",
+  "email": "test6@gmail.com",
+  "password": "Test6666#",
+  "friends": [
+    "6726203a4ffd67573412885e"
+  ],
+  "playlists": [
+    "6727b378432f2fbb7a84db32",
+    "6726c3735d7f559ecfe9333c"
+  ],
+  "created_playlists": [],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+},
+{
+  "_id": {
+    "$oid": "6727f0036068b3acd8563ec0"
+  },
+  "username": "test7",
+  "email": "test7@gmail.com",
+  "password": "Test7777#",
+  "friends": [],
+  "playlists": [],
+  "created_playlists": [],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+},
+{
+  "_id": {
+    "$oid": "6727f01d6068b3acd8563ec1"
+  },
+  "username": "test",
+  "email": "test@test.com",
+  "password": "Test1234#",
+  "friends": [
+    "6726203a4ffd67573412885e",
+    "67261bac9cb249cf3c67beaf",
+    "67278ce99771222d2e0d7066"
+  ],
+  "playlists": [
+    "6727f0546068b3acd8563ec3",
+    "6727f05e6068b3acd8563ec4",
+    "6726c51c5d7f559ecfe9333e",
+    "6726c3c05d7f559ecfe9333d",
+    "6726c3735d7f559ecfe9333c"
+  ],
+  "created_playlists": [
+    "6727f0546068b3acd8563ec3",
+    "6727f05e6068b3acd8563ec4"
+  ],
+  "profilePic": "/assets/uploads/profiles/profile-1730670713842.jpg",
+  "bio": "Something!!",
+  "pronouns": "He/Him",
+  "socialLinks": "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+},
+{
+  "_id": {
+    "$oid": "6727f0356068b3acd8563ec2"
+  },
+  "username": "test9",
+  "email": "test9@gmail.com",
+  "password": "Test9999#",
+  "friends": [],
+  "playlists": [],
+  "created_playlists": [],
+  "profilePic": "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+}]
