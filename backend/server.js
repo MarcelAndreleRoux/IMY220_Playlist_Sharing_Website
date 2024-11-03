@@ -1,8 +1,10 @@
 // server.js
 import express from "express";
+import fs from "fs";
 import cors from "cors";
 import path from "path";
-import { MongoClient } from "mongodb";
+import multer from "multer";
+import { MongoClient, ObjectId } from "mongodb";
 import "regenerator-runtime/runtime";
 
 const app = express();
@@ -10,9 +12,60 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));
 
 app.use(express.static("./frontend/public"));
+
+// Configure multer for file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    let dir;
+    // Determine directory based on upload type
+    if (req.path.includes("/comment")) {
+      dir = "./frontend/public/assets/uploads/comments";
+    } else if (req.path.includes("/profile")) {
+      dir = "./frontend/public/assets/uploads/profiles";
+    } else {
+      dir = "./frontend/public/assets/uploads/playlists";
+    }
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    let prefix;
+    if (req.path.includes("/comment")) {
+      prefix = "comment-";
+    } else if (req.path.includes("/profile")) {
+      prefix = "profile-";
+    } else {
+      prefix = "playlist-";
+    }
+    cb(null, `${prefix}${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ["image/jpg", "image/jpeg", "image/png", "image/gif"];
+
+    if (!allowedTypes.includes(file.mimetype)) {
+      const error = new Error(
+        "Only .png, .jpg, .jpeg and .gif files are allowed!"
+      );
+      error.code = "INCORRECT_FILETYPE";
+      return cb(error, false);
+    }
+
+    cb(null, true);
+  },
+});
 
 const username = "u22598805";
 const password = "IMADETHIS1234";
@@ -33,49 +86,17 @@ async function connectToMongoDB() {
   }
 }
 
-async function initializeSequences() {
-  try {
-    const database = client.db(dbName);
-    const sequencesCollection = database.collection("sequences");
+async function getNextSequenceValue(sequenceName) {
+  const database = client.db(dbName);
+  const sequencesCollection = database.collection("sequences");
 
-    // Initialize sequence counters if they don't exist
-    await sequencesCollection.updateMany(
-      {},
-      {
-        $setOnInsert: {
-          _id: "userId",
-          sequence_value: 4,
-        },
-      },
-      { upsert: true }
-    );
+  const sequenceDocument = await sequencesCollection.findOneAndUpdate(
+    { _id: sequenceName },
+    { $inc: { sequence_value: 1 } },
+    { upsert: true, returnDocument: "after" }
+  );
 
-    await sequencesCollection.updateMany(
-      {},
-      {
-        $setOnInsert: {
-          _id: "songId",
-          sequence_value: 5,
-        },
-      },
-      { upsert: true }
-    );
-
-    await sequencesCollection.updateMany(
-      {},
-      {
-        $setOnInsert: {
-          _id: "playlistId",
-          sequence_value: 7,
-        },
-      },
-      { upsert: true }
-    );
-
-    console.log("Sequences initialized");
-  } catch (error) {
-    console.error("Error initializing sequences:", error);
-  }
+  return sequenceDocument.sequence_value;
 }
 
 // --------------------------------------------------- CRUD ---------------------------------------------------
@@ -115,9 +136,10 @@ async function runUpdateQuery(collectionName, filter, updateDoc) {
     const collection = database.collection(collectionName);
 
     const result = await collection.updateOne(filter, updateDoc);
+
     return result;
   } catch (error) {
-    console.error(`Error fetching from ${collectionName}:`, error);
+    console.error(`Error updating in ${collectionName}:`, error);
     throw error;
   }
 }
@@ -158,24 +180,45 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+// POST: Login Endpoint
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await runFindQuery("users", { email, password }, {});
+
+    if (user.length === 0) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user[0];
+    res.json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // POST: Create a new user
 app.post("/api/users", async (req, res) => {
   try {
-    const newUser = req.body;
+    // Create new user with MongoDB _id
+    const result = await runInsertQuery("users", {
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      friends: [],
+      playlists: [],
+      created_playlists: [],
+      profilePic:
+        "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+    });
 
-    // next user ID
-    const nextUserId = await getNextSequenceValue("userId");
-    newUser.userId = nextUserId;
-
-    // default values
-    newUser.friends = [];
-    newUser.playlists = [];
-    newUser.created_playlists = [];
-    newUser.profilePic =
-      "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
-
-    const result = await runInsertQuery("users", newUser);
-    res.status(201).json({ message: "User added!", result });
+    // Return the created user without password
+    const { password: _, ...userWithoutPassword } = result;
+    res
+      .status(201)
+      .json({ message: "User added!", result: userWithoutPassword });
   } catch (error) {
     console.error("Error posting users:", error);
     res.status(400).json({ message: error.message });
@@ -186,7 +229,7 @@ app.post("/api/users", async (req, res) => {
 app.get("/api/users/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const results = await runFindQuery("users", { userId: parseInt(id) }, {});
+    const results = await runFindQuery("users", { _id: new ObjectId(id) }, {});
 
     if (results.length === 0) {
       res.status(404).json({ message: "User not found" });
@@ -204,16 +247,23 @@ app.patch("/api/users/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const updateData = { $set: req.body };
+
     const result = await runUpdateQuery(
       "users",
-      { userId: parseInt(id) },
+      { _id: new ObjectId(id) },
       updateData
     );
 
     if (result.matchedCount === 0) {
       res.status(404).json({ message: "User not found" });
     } else {
-      res.json({ message: "User updated!", result });
+      // Get the updated user to return in response
+      const updatedUser = await runFindQuery(
+        "users",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      res.json({ message: "User updated!", result: updatedUser[0] });
     }
   } catch (error) {
     console.error("Error patching user:", error);
@@ -225,7 +275,7 @@ app.patch("/api/users/:id", async (req, res) => {
 app.delete("/api/users/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await runDeleteQuery("users", { userId: parseInt(id) });
+    const result = await runDeleteQuery("users", { _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       res.status(404).json({ message: "User not found" });
@@ -233,7 +283,7 @@ app.delete("/api/users/:id", async (req, res) => {
       res.json({ message: "User deleted!", result });
     }
   } catch (error) {
-    console.error("Error deleting users:", error);
+    console.error("Error deleting user:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -258,18 +308,48 @@ app.get("/api/songs", async (req, res) => {
 // POST: Add a new song
 app.post("/api/songs", async (req, res) => {
   try {
-    const newSong = req.body;
+    const { name, artist, link, creatorId } = req.body;
+    const database = client.db(dbName);
+    const collection = database.collection("songs");
 
-    // next song ID
-    const nextSongId = await getNextSequenceValue("songId");
-    newSong.id = nextSongId;
+    // Check if song with the same link already exists
+    const existingSong = await collection.findOne({ link });
 
-    // default values
-    newSong.addedToPlaylistsCount = 0;
-    newSong.isDeleted = false;
+    if (existingSong) {
+      if (existingSong.isDeleted) {
+        // If the song exists but is deleted, restore it
+        const updatedSong = await collection.findOneAndUpdate(
+          { _id: existingSong._id },
+          { $set: { isDeleted: false, name, artist } },
+          { returnDocument: "after" }
+        );
+        res.status(200).json({
+          message: "Song restored!",
+          result: updatedSong.value,
+        });
+      } else {
+        res.status(409).json({ message: "Song already exists!" });
+      }
+    } else {
+      // Create new song
+      const newSong = {
+        name,
+        artist,
+        link,
+        creatorId,
+        addedToPlaylistsCount: 0,
+        isDeleted: false,
+        createdAt: new Date().toISOString(),
+      };
 
-    const result = await runInsertQuery("songs", newSong);
-    res.status(201).json({ message: "Song added!", result });
+      const result = await collection.insertOne(newSong);
+      // Fetch the inserted document
+      const insertedSong = await collection.findOne({ _id: result.insertedId });
+      res.status(201).json({
+        message: "Song added!",
+        result: insertedSong,
+      });
+    }
   } catch (error) {
     console.error("Error posting song:", error);
     res.status(400).json({ message: error.message });
@@ -280,8 +360,7 @@ app.post("/api/songs", async (req, res) => {
 app.get("/api/songs/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await runFindQuery("songs", { id: parseInt(id) }, {});
-
+    const result = await runFindQuery("songs", { _id: new ObjectId(id) }, {});
     if (result.length === 0) {
       res.status(404).json({ message: "Song not found" });
     } else {
@@ -300,7 +379,7 @@ app.patch("/api/songs/:id", async (req, res) => {
     const updateData = { $set: req.body };
     const result = await runUpdateQuery(
       "songs",
-      { id: parseInt(id) },
+      { _id: new ObjectId(id) },
       updateData
     );
 
@@ -310,7 +389,7 @@ app.patch("/api/songs/:id", async (req, res) => {
       res.json({ message: "Song updated!", result });
     }
   } catch (error) {
-    console.error("Error patching song:", error);
+    console.error("Error updating song:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -319,8 +398,7 @@ app.patch("/api/songs/:id", async (req, res) => {
 app.delete("/api/songs/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await runDeleteQuery("songs", { id: parseInt(id) });
-
+    const result = await runDeleteQuery("songs", { _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       res.status(404).json({ message: "Song not found" });
     } else {
@@ -355,29 +433,155 @@ app.post("/api/playlists", async (req, res) => {
   try {
     const newPlaylist = req.body;
 
-    // next playlist ID
-    const nextPlaylistId = await getNextSequenceValue("playlistId");
-    newPlaylist.id = nextPlaylistId;
-
-    // default values
+    // Set default values
     newPlaylist.songs = [];
     newPlaylist.comments = [];
     newPlaylist.followers = [newPlaylist.creatorId];
     newPlaylist.creationDate = new Date().toISOString();
 
-    const result = await runInsertQuery("playlists", newPlaylist);
-    res.status(201).json({ message: "Playlist added!", result });
+    const database = client.db(dbName);
+    const collection = database.collection("playlists");
+
+    // Insert the playlist
+    const insertResult = await collection.insertOne(newPlaylist);
+
+    // Fetch the complete inserted document
+    const insertedPlaylist = await collection.findOne({
+      _id: insertResult.insertedId,
+    });
+
+    res
+      .status(201)
+      .json({ message: "Playlist added!", result: insertedPlaylist });
   } catch (error) {
     console.error("Error posting playlists:", error);
     res.status(400).json({ message: error.message });
   }
 });
 
+// TEMPERARY UPLOAD
+app.post(
+  "/api/playlists/temp/image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const imageUrl = `/assets/uploads/playlists/${req.file.filename}`;
+      res.json({ message: "Image uploaded!", imageUrl });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+);
+
+// ADD NEW PLAYLIST IMAGE
+app.patch(
+  "/api/playlists/:id/image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const imageUrl = `/assets/uploads/playlists/${req.file.filename}`;
+
+      const result = await runUpdateQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        { $set: { coverImage: imageUrl } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "Playlist not found" });
+      }
+
+      const updatedPlaylist = await runFindQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      res.json({ message: "Image updated!", result: updatedPlaylist[0] });
+    } catch (error) {
+      console.error("Error updating playlist image:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+);
+
+// ADD PATCH FOR NEW COMMENT
+app.patch(
+  "/api/playlists/:id/comment",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const commentData = JSON.parse(req.body.comment);
+
+      let imageUrl = null;
+      if (req.file) {
+        // Update image URL to match your public assets path
+        imageUrl = `/assets/uploads/comments/${req.file.filename}`;
+      }
+
+      const playlist = await runFindQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      if (!playlist[0]) {
+        return res.status(404).json({ message: "Playlist not found" });
+      }
+
+      const newComment = {
+        ...commentData,
+        _id: new ObjectId(),
+        image: imageUrl,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        likedBy: [],
+      };
+
+      const updatedComments = [...(playlist[0].comments || []), newComment];
+
+      const result = await runUpdateQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        { $set: { comments: updatedComments } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "Playlist not found" });
+      }
+
+      const updatedPlaylist = await runFindQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      res.json({ message: "Comment added!", result: updatedPlaylist[0] });
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+);
+
 // GET: Retrieve a playlist by id
 app.get("/api/playlists/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await runFindQuery("playlists", { id: parseInt(id) }, {});
+    const result = await runFindQuery(
+      "playlists",
+      { _id: new ObjectId(id) },
+      {}
+    );
 
     if (result.length === 0) {
       res.status(404).json({ message: "Playlist not found" });
@@ -390,20 +594,27 @@ app.get("/api/playlists/:id", async (req, res) => {
   }
 });
 
+// In server.js, update the PATCH endpoint for playlists
 app.patch("/api/playlists/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const updateData = { $set: req.body };
+
     const result = await runUpdateQuery(
       "playlists",
-      { id: parseInt(id) },
+      { _id: new ObjectId(id) },
       updateData
     );
 
     if (result.matchedCount === 0) {
       res.status(404).json({ message: "Playlist not found" });
     } else {
-      res.json({ message: "Playlist updated!", result });
+      const updatedPlaylist = await runFindQuery(
+        "playlists",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      res.json({ message: "Playlist updated!", result: updatedPlaylist[0] });
     }
   } catch (error) {
     console.error("Error patching playlist:", error);
@@ -415,7 +626,7 @@ app.patch("/api/playlists/:id", async (req, res) => {
 app.delete("/api/playlists/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await runDeleteQuery("playlists", { id: parseInt(id) });
+    const result = await runDeleteQuery("playlists", { _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       res.status(404).json({ message: "Playlist not found" });
@@ -435,6 +646,5 @@ app.get("*", (req, res) => {
 // Start the server
 app.listen(PORT, async () => {
   await connectToMongoDB();
-  await initializeSequences();
   console.log(`Server is running on http://localhost:${PORT}/`);
 });

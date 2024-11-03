@@ -15,13 +15,11 @@ import ProfilePage from "./pages/ProfilePage";
 import PlaylistPage from "./pages/PlaylistPage";
 import PersonalPlaylists from "./pages/PersonalPlaylists";
 import SongPage from "./pages/SongPage";
-import AddSongToPlaylistPage from "./components/AddSongToPlaylistPage";
-import SongsFeedPage from "./pages/SongsFeedPage";
+import AddSongToPlaylistPage from "./pages/AddSongToPlaylistPage";
 import PlaylistFeedPage from "./pages/PlaylistFeedPage";
 import AddSongPage from "./components/AddSongPage";
 import EditProfile from "./pages/EditProfile";
 import EditPlaylist from "./pages/EditPlaylist";
-import AddCommentForm from "./components/AddCommentForm";
 import AddToPlaylistPage from "./components/AddToPlaylistPage";
 
 export const App = () => {
@@ -100,7 +98,7 @@ export const App = () => {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to="/login" />,
+      element: <SplashPage />,
     },
     {
       path: "/login",

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PlaylistContext } from "../context/PlaylistContext";
 
 const AddSongPage = () => {
-  const { addNewSong, authenticatedUser } = useContext(PlaylistContext);
+  const { addNewSong, songs, authenticatedUser } = useContext(PlaylistContext);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -38,66 +38,24 @@ const AddSongPage = () => {
     }
 
     try {
-      // Check if a song with this link already exists (including deleted ones)
+      // Check if song exists by link
       const existingSong = songs.find((song) => song.link === link);
 
-      if (existingSong) {
-        if (existingSong.isDeleted) {
-          // If song exists but was deleted, restore it
-          const response = await fetch(`/api/songs/${existingSong.id}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              isDeleted: false,
-              name,
-              artist,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to restore song");
-          }
-
-          const updatedSong = await response.json();
-          setSongs((prevSongs) =>
-            prevSongs.map((song) =>
-              song.id === existingSong.id ? updatedSong : song
-            )
-          );
-        } else {
-          setError("This song already exists in the system.");
-          return;
-        }
-      } else {
-        // Create new song if it doesn't exist
-        const newSong = {
-          name,
-          artist,
-          link,
-          creatorId: authenticatedUser.userId,
-          createdAt: new Date().toISOString(),
-          addedToPlaylistsCount: 0,
-          isDeleted: false,
-        };
-
-        const response = await fetch("/api/songs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newSong),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to add song");
-        }
-
-        const addedSong = await response.json();
-        addNewSong(addedSong);
+      if (existingSong && !existingSong.isDeleted) {
+        setError("This song already exists in the system.");
+        return;
       }
 
+      // Create new song object
+      const newSong = {
+        name,
+        artist,
+        link,
+        creatorId: authenticatedUser._id,
+      };
+
+      // Use the context function to add the song
+      await addNewSong(newSong);
       navigate("/home?tab=songs");
     } catch (err) {
       setError(err.message);

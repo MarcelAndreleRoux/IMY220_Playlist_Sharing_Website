@@ -31,47 +31,41 @@ const LoginForm = () => {
       return;
     }
 
-    if (!Array.isArray(users) || users.length === 0) {
-      setError("No users found.");
-      return;
-    }
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const user = users.find(
-      (user) =>
-        user.email.toLowerCase() === email.toLowerCase() &&
-        user.password === password
-    );
+      if (!response.ok) {
+        throw new Error("Invalid email or password");
+      }
 
-    if (user) {
-      const { password: _, ...userWithoutPassword } = user;
+      const { user } = await response.json();
 
-      // Set cookie first
-      setCookie("userId", userWithoutPassword.userId, 1);
+      // Set cookie first with MongoDB _id
+      setCookie("userId", user._id, 1);
 
       // Then set session storage
-      sessionStorage.setItem(
-        "authenticatedUser",
-        JSON.stringify(userWithoutPassword)
-      );
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(user));
 
       // Update context
-      setAuthenticatedUser(userWithoutPassword);
+      setAuthenticatedUser(user);
 
       setSuccess("Login successful!");
       setError("");
 
-      // Add a longer delay and check auth state before navigating
       setTimeout(() => {
         const userId = getCookie("userId");
-        console.log("About to navigate, userId:", userId);
         if (userId) {
           navigate("/home");
-        } else {
-          console.error("Cookie not set properly");
         }
       }, 500);
-    } else {
-      setError("Invalid email or password.");
+    } catch (err) {
+      setError(err.message);
       setSuccess("");
     }
   };
@@ -85,6 +79,21 @@ const LoginForm = () => {
       navigate("/home");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    // Check for auto-fill data from registration
+    const lastEmail = sessionStorage.getItem("lastRegisteredEmail");
+    const lastPassword = sessionStorage.getItem("lastRegisteredPassword");
+
+    if (lastEmail && lastPassword && emailRef.current && passwordRef.current) {
+      emailRef.current.value = lastEmail;
+      passwordRef.current.value = lastPassword;
+
+      // Clear stored credentials
+      sessionStorage.removeItem("lastRegisteredEmail");
+      sessionStorage.removeItem("lastRegisteredPassword");
+    }
+  }, []);
 
   return (
     <form onSubmit={validateUserInput}>

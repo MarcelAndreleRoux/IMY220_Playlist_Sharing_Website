@@ -13,12 +13,13 @@ const SongPage = () => {
     useContext(PlaylistContext);
   const [error, setError] = useState("");
 
-  const song = songs.find((s) => s.id === parseInt(songid));
-  const songCreator = users.find((u) => u.userId === song?.creatorId);
+  // Find song by MongoDB _id
+  const song = songs.find((s) => s._id === songid);
+  const songCreator = users.find((u) => u._id === song?.creatorId);
 
   const canDelete =
     authenticatedUser &&
-    (authenticatedUser.userId === song?.creatorId ||
+    (authenticatedUser._id === song?.creatorId ||
       authenticatedUser.role === "admin");
 
   if (!song) {
@@ -38,8 +39,7 @@ const SongPage = () => {
     }
 
     try {
-      // Make API call to mark song as deleted
-      const response = await fetch(`/api/songs/${song.id}`, {
+      const response = await fetch(`/api/songs/${song._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -51,23 +51,22 @@ const SongPage = () => {
         throw new Error("Failed to delete song");
       }
 
-      // First update songs in context
       setSongs((prevSongs) =>
-        prevSongs.map((s) => (s.id === song.id ? { ...s, isDeleted: true } : s))
+        prevSongs.map((s) =>
+          s._id === song._id ? { ...s, isDeleted: true } : s
+        )
       );
 
-      // Then update playlists state
       setPlaylists((prevPlaylists) =>
         prevPlaylists.map((playlist) => ({
           ...playlist,
           songs:
             playlist.songs?.map((songId) =>
-              songId === song.id ? { id: songId, isDeleted: true } : songId
-            ) || [], // Add null check with default empty array
+              songId === song._id ? { id: songId, isDeleted: true } : songId
+            ) || [],
         }))
       );
 
-      // Only navigate after state updates are queued
       setTimeout(() => {
         navigate("/home?tab=songs");
       }, 100);
@@ -82,14 +81,23 @@ const SongPage = () => {
       <div className="container mt-5">
         {error && <div className="alert alert-danger">{error}</div>}
 
-        <div className="card">
+        <div
+          className={`card ${song.isDeleted ? "bg-light border-danger" : ""}`}
+        >
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-start">
               <div>
-                <h1 className="card-title">{song.name}</h1>
+                <h1
+                  className={`card-title ${song.isDeleted ? "text-muted" : ""}`}
+                >
+                  {song.name}
+                  {song.isDeleted && (
+                    <span className="badge bg-danger ms-2">Deleted</span>
+                  )}
+                </h1>
                 <h3 className="card-subtitle mb-2 text-muted">{song.artist}</h3>
               </div>
-              {canDelete && (
+              {canDelete && !song.isDeleted && (
                 <button className="btn btn-danger" onClick={handleDelete}>
                   Delete Song
                 </button>
@@ -113,12 +121,14 @@ const SongPage = () => {
             </div>
 
             <div className="mt-4">
-              <Link
-                to={`/addtoplaylist/${song.id}`}
-                className="btn btn-primary me-2"
-              >
-                Add to Playlist
-              </Link>
+              {!song.isDeleted && (
+                <Link
+                  to={`/addtoplaylist/${song.id}`}
+                  className="btn btn-primary me-2"
+                >
+                  Add to Playlist
+                </Link>
+              )}
               <Link to="/home?tab=songs" className="btn btn-secondary">
                 Back to Songs
               </Link>

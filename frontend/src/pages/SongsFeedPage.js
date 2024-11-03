@@ -37,19 +37,16 @@ const SongsFeedPage = () => {
         throw new Error("Failed to delete song");
       }
 
-      // Update filtered songs first
       setFilteredSongs((prevFilteredSongs) =>
-        prevFilteredSongs.filter((song) => song.id !== songId)
+        prevFilteredSongs.filter((song) => song._id !== songId)
       );
 
-      // Update main songs state
       setSongs((prevSongs) =>
         prevSongs.map((song) =>
-          song.id === songId ? { ...song, isDeleted: true } : song
+          song._id === songId ? { ...song, isDeleted: true } : song
         )
       );
 
-      // Update playlists with null checks
       setPlaylists((prevPlaylists) =>
         prevPlaylists.map((playlist) => ({
           ...playlist,
@@ -69,52 +66,67 @@ const SongsFeedPage = () => {
       <div className="container mt-5">
         <SearchBar onSearch={handleSearch} placeholder="Search Songs..." />
         <div className="row">
-          {filteredSongs.length > 0 ? (
-            filteredSongs.map((song) => (
-              <div key={song.id} className="col-md-4 mb-4">
-                <div className="card">
-                  <div className="card-body text-center">
-                    <h5 className="card-title">{song.name}</h5>
-                    <h6 className="card-subtitle mb-2 text-muted">
-                      {song.artist}
-                    </h6>
-                    <SpotifyEmbed songLink={song.link} />
-                    <p>
-                      Added by:{" "}
-                      {users.find((u) => u.userId === song.creatorId)?.username}
-                    </p>
-                    <p>Added to {song.addedToPlaylistsCount} playlists</p>
+          {filteredSongs.map((song) => (
+            <div key={song._id} className="col-md-4 mb-4">
+              <div
+                className={`card h-100 ${
+                  song.isDeleted ? "bg-light border-danger" : ""
+                }`}
+              >
+                <div className="card-body">
+                  <h5
+                    className={`card-title ${
+                      song.isDeleted ? "text-muted" : ""
+                    }`}
+                  >
+                    {song.name}
+                    {song.isDeleted && (
+                      <span className="badge bg-danger ms-2">Deleted</span>
+                    )}
+                  </h5>
+                  <h6 className="card-subtitle mb-2 text-muted">
+                    {song.artist}
+                  </h6>
+                  <SpotifyEmbed songLink={song.link} />
+                  <p className="card-text">
+                    Added by:{" "}
+                    {users.find((u) => u._id === song.creatorId)?.username ||
+                      "Unknown"}
+                  </p>
+                  <p className="card-text">
+                    Added to {song.addedToPlaylistsCount} playlists
+                  </p>
 
-                    {(song.creatorId === authenticatedUser?.userId ||
+                  {!song.isDeleted &&
+                    (authenticatedUser?._id === song.creatorId ||
                       authenticatedUser?.role === "admin") && (
                       <button
-                        onClick={() => handleMarkAsDeleted(song.id)}
-                        className="btn btn-danger m-3"
+                        onClick={() => handleMarkAsDeleted(song._id)}
+                        className="btn btn-danger me-2"
                       >
                         Delete Song
                       </button>
                     )}
 
-                    <Link
-                      to={`/song/${song.id}`}
-                      className="btn btn-secondary m-3"
-                    >
-                      View Details
-                    </Link>
+                  <Link
+                    to={`/song/${song._id}`}
+                    className="btn btn-secondary me-2"
+                  >
+                    View Details
+                  </Link>
 
+                  {!song.isDeleted && (
                     <Link
-                      to={`/addtoplaylist/${song.id}`}
-                      className="btn btn-primary m-3"
+                      to={`/addtoplaylist/${song._id}`}
+                      className="btn btn-primary"
                     >
                       Add to Playlist
                     </Link>
-                  </div>
+                  )}
                 </div>
               </div>
-            ))
-          ) : (
-            <NoSongsMessage />
-          )}
+            </div>
+          ))}
         </div>
       </div>
 

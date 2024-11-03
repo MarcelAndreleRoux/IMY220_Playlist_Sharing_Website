@@ -1,130 +1,131 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import NavBar from "../components/NavBar";
-import CommentsSection from "../components/CommentsSection";
+import CommentSection from "../components/CommentsSection";
+import CommentPopup from "../components/CommentPopup";
 import SongsInPlaylist from "../components/SongsInPlaylist";
 import { PlaylistContext } from "../context/PlaylistContext";
 
 const PlaylistPage = () => {
   const { playlistid } = useParams();
-  const { playlists, users, songs, setPlaylists, removeSongFromPlaylist } =
-    useContext(PlaylistContext);
+  const {
+    playlists,
+    users,
+    songs,
+    authenticatedUser,
+    handleLikePlaylist,
+    handleUnlikePlaylist,
+    setPlaylists,
+  } = useContext(PlaylistContext);
+  const [isCommentPopupOpen, setIsCommentPopupOpen] = useState(false);
 
-  const playlist = playlists.find((pl) => pl.id === parseInt(playlistid)) || {
+  const playlist = playlists.find((pl) => pl._id === playlistid) || {
     songs: [],
     followers: [],
     hashtags: [],
+    comments: [],
   };
 
-  const currentUser = JSON.parse(localStorage.getItem("authenticatedUser"));
-  const isCreator = currentUser?.created_playlists?.includes(playlist.id);
-  const [isFollowing, setIsFollowing] = useState(
-    currentUser?.playlists?.includes(playlist.id)
+  const [playlistSongs, setPlaylistSongs] = useState(playlist.songs || []);
+
+  const isCreator = authenticatedUser?.created_playlists?.includes(
+    playlist._id
   );
 
-  const handleFollow = async () => {
+  const isFollowing = authenticatedUser?.playlists?.includes(playlist._id);
+
+  const handleAddComment = async (formData) => {
     try {
-      // Update followers array in playlist
-      const response = await fetch(`/api/playlists/${playlist.id}`, {
+      const response = await fetch(`/api/playlists/${playlistid}/comment`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          followers: [...playlist.followers, authenticatedUser.userId],
-        }),
+        body: formData,
       });
 
-      if (!response.ok) throw new Error("Failed to follow playlist");
+      if (!response.ok) {
+        throw new Error("Failed to add comment");
+      }
 
-      // Update user's playlists array
-      const userResponse = await fetch(
-        `/api/users/${authenticatedUser.userId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            playlists: [...authenticatedUser.playlists, playlist.id],
-          }),
-        }
+      const updatedPlaylist = await response.json();
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((pl) =>
+          pl._id === playlistid ? updatedPlaylist.result : pl
+        )
       );
-
-      if (!userResponse.ok) throw new Error("Failed to update user playlists");
-
-      const updatedUser = await userResponse.json();
-
-      // Update local state
-      const updatedPlaylist = {
-        ...playlist,
-        followers: [...playlist.followers, authenticatedUser.userId],
-      };
-
-      setPlaylists((prev) =>
-        prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
-      );
-
-      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
-      setIsFollowing(true);
-    } catch (err) {
-      console.error("Error following playlist:", err);
+    } catch (error) {
+      console.error("Error adding comment:", error);
     }
   };
 
-  const handleUnfollow = async () => {
+  const handleLikeComment = async (commentId) => {
     try {
-      // Update followers array in playlist
-      const response = await fetch(`/api/playlists/${playlist.id}`, {
+      const updatedComments = playlist.comments.map((comment) => {
+        if (comment._id === commentId) {
+          const hasLiked = comment.likedBy?.includes(authenticatedUser._id);
+          return {
+            ...comment,
+            likes: hasLiked ? comment.likes - 1 : comment.likes + 1,
+            likedBy: hasLiked
+              ? comment.likedBy.filter((id) => id !== authenticatedUser._id)
+              : [...(comment.likedBy || []), authenticatedUser._id],
+          };
+        }
+        return comment;
+      });
+
+      const response = await fetch(`/api/playlists/${playlistid}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          followers: playlist.followers.filter(
-            (id) => id !== authenticatedUser.userId
-          ),
+          comments: updatedComments,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to unfollow playlist");
+      if (!response.ok) {
+        throw new Error("Failed to update comment likes");
+      }
 
-      // Update user's playlists array
-      const userResponse = await fetch(
-        `/api/users/${authenticatedUser.userId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            playlists: authenticatedUser.playlists.filter(
-              (id) => id !== playlist.id
-            ),
-          }),
-        }
+      const updatedPlaylist = await response.json();
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((pl) =>
+          pl._id === playlistid ? updatedPlaylist.result : pl
+        )
       );
+    } catch (error) {
+      console.error("Error updating comment likes:", error);
+    }
+  };
 
-      if (!userResponse.ok) throw new Error("Failed to update user playlists");
+  const handlePinComment = async (commentId) => {
+    try {
+      const updatedComments = playlist.comments.map((comment) => ({
+        ...comment,
+        isPinned: comment._id === commentId,
+      }));
 
-      const updatedUser = await userResponse.json();
+      const response = await fetch(`/api/playlists/${playlistid}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          comments: updatedComments,
+        }),
+      });
 
-      // Update local state
-      const updatedPlaylist = {
-        ...playlist,
-        followers: playlist.followers.filter(
-          (id) => id !== authenticatedUser.userId
-        ),
-      };
+      if (!response.ok) {
+        throw new Error("Failed to pin comment");
+      }
 
-      setPlaylists((prev) =>
-        prev.map((pl) => (pl.id === playlist.id ? updatedPlaylist : pl))
+      const updatedPlaylist = await response.json();
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((pl) =>
+          pl._id === playlistid ? updatedPlaylist.result : pl
+        )
       );
-
-      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
-      setIsFollowing(false);
-    } catch (err) {
-      console.error("Error unfollowing playlist:", err);
+    } catch (error) {
+      console.error("Error pinning comment:", error);
     }
   };
 
@@ -143,32 +144,33 @@ const PlaylistPage = () => {
             <h1>{playlist.name}</h1>
             <p className="text-muted">
               By{" "}
-              {users.find((u) => u.userId === playlist.creatorId)?.username ||
+              {users.find((u) => u._id === playlist.creatorId)?.username ||
                 "Unknown"}
             </p>
             <p>{playlist.genre}</p>
             <div>
-              {playlist.hashtags
-                ? playlist.hashtags.map((tag, i) => (
-                    <span key={i} className="badge bg-secondary me-1">
-                      #{tag}
-                    </span>
-                  ))
-                : ""}
+              {playlist.hashtags?.map((tag, i) => (
+                <span key={i} className="badge bg-secondary me-1">
+                  #{tag}
+                </span>
+              ))}
             </div>
             <p>{(playlist.followers || []).length} Followers</p>
             <div className="mt-4">
               {isCreator ? (
-                <Link to={`/edit_playlist/${playlist.id}`}>
+                <Link to={`/edit_playlist/${playlist._id}`}>
                   <button className="btn btn-warning">Edit Playlist</button>
                 </Link>
-              ) : isFollowing ? (
-                <button className="btn btn-danger" onClick={handleUnfollow}>
-                  Unfollow
-                </button>
               ) : (
-                <button className="btn btn-success" onClick={handleFollow}>
-                  Follow
+                <button
+                  className={isFollowing ? "btn btn-danger" : "btn btn-success"}
+                  onClick={() =>
+                    isFollowing
+                      ? handleUnlikePlaylist(playlist._id)
+                      : handleLikePlaylist(playlist._id)
+                  }
+                >
+                  {isFollowing ? "Unlike" : "Like"}
                 </button>
               )}
             </div>
@@ -176,26 +178,32 @@ const PlaylistPage = () => {
         </div>
 
         <SongsInPlaylist
-          playlist={playlist}
+          playlist={{ ...playlist, songs: playlistSongs }}
           songs={songs}
-          removeSongFromPlaylist={async (songId) => {
-            try {
-              await removeSongFromPlaylist(playlist.id, songId);
-            } catch (err) {
-              console.error("Failed to remove song:", err);
-            }
-          }}
+          setPlaylistSongs={setPlaylistSongs}
         />
 
-        <CommentsSection
-          playlist={playlist}
-          currentUser={currentUser}
-          findUserById={(id) => users.find((user) => user.userId === id)}
-          updatePlaylistComments={(id, comments) =>
-            setPlaylists((prev) =>
-              prev.map((pl) => (pl.id === id ? { ...pl, comments } : pl))
-            )
-          }
+        <div className="mt-8">
+          <button
+            onClick={() => setIsCommentPopupOpen(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Leave a Comment
+          </button>
+
+          <CommentSection
+            comments={playlist.comments || []}
+            onLikeComment={handleLikeComment}
+            onPinComment={handlePinComment}
+            currentUserId={authenticatedUser?._id}
+            isPlaylistCreator={authenticatedUser?._id === playlist.creatorId}
+          />
+        </div>
+
+        <CommentPopup
+          isOpen={isCommentPopupOpen}
+          onClose={() => setIsCommentPopupOpen(false)}
+          onSubmit={handleAddComment}
         />
       </div>
     </>

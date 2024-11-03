@@ -5,27 +5,27 @@ import PlaylistDetailsForm from "../components/PlaylistDetailsForm";
 import ReorderSongs from "../components/ReorderSongs";
 
 const EditPlaylist = () => {
-  const { playlists, songs, genres, setPlaylists } =
-    useContext(PlaylistContext);
+  const {
+    playlists,
+    songs,
+    genres,
+    setPlaylists,
+    setSongs,
+    setUsers,
+    authenticatedUser,
+    setAuthenticatedUser,
+  } = useContext(PlaylistContext);
   const { playlistid } = useParams();
   const navigate = useNavigate();
 
-  // Fetch authenticated user info from localStorage
-  const authenticatedUser = JSON.parse(
-    localStorage.getItem("authenticatedUser")
-  );
+  const playlist = playlists.find((pl) => pl._id === playlistid);
 
-  const userId = authenticatedUser?.userId; // Extract userId from authenticated user
-
-  const playlist = playlists.find((pl) => pl.id === parseInt(playlistid));
-
-  // Ensure the playlist exists and the user is authorized to edit
   useEffect(() => {
-    if (!playlist || playlist.creatorId !== userId) {
+    if (!playlist || playlist.creatorId !== authenticatedUser?._id) {
       alert("You are not authorized to edit this playlist");
       navigate("/playlistfeed");
     }
-  }, [playlist, userId, navigate]);
+  }, [playlist, authenticatedUser, navigate]);
 
   const [name, setName] = useState(playlist?.name || "");
   const [genre, setGenre] = useState(playlist?.genre || "");
@@ -33,6 +33,7 @@ const EditPlaylist = () => {
   const [description, setDescription] = useState(playlist?.description || "");
   const [hashtags, setHashtags] = useState(playlist?.hashtags.join(", ") || "");
   const [playlistSongs, setPlaylistSongs] = useState(playlist?.songs || []);
+  const [imageFile, setImageFile] = useState(null);
 
   // Handle saving changes to the playlist
   const handleSaveChanges = async () => {
@@ -42,34 +43,55 @@ const EditPlaylist = () => {
         .map((tag) => tag.trim())
         .filter((tag) => tag);
 
+      // Update playlist data
       const updatedPlaylist = {
-        ...playlist,
         name,
         genre,
-        coverImage,
         description,
         hashtags: updatedHashtags,
         songs: playlistSongs,
-        followers: playlist.followers || [],
       };
+
+      let imageUrl = coverImage;
+      if (imageFile instanceof File) {
+        const formData = new FormData();
+        formData.append("image", imageFile);
+
+        const imageResponse = await fetch(
+          `/api/playlists/${playlistid}/image`,
+          {
+            method: "PATCH",
+            body: formData,
+          }
+        );
+
+        if (!imageResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const imageData = await imageResponse.json();
+        imageUrl = imageData.result.coverImage;
+      }
 
       const response = await fetch(`/api/playlists/${playlistid}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedPlaylist),
+        body: JSON.stringify({
+          ...updatedPlaylist,
+          coverImage: imageUrl,
+        }),
       });
 
       if (!response.ok) {
         throw new Error("Failed to update playlist");
       }
 
-      // Update local state with the complete playlist object
+      const { result: finalPlaylist } = await response.json();
+
       setPlaylists((prevPlaylists) =>
-        prevPlaylists.map((pl) =>
-          pl.id === parseInt(playlistid) ? updatedPlaylist : pl
-        )
+        prevPlaylists.map((pl) => (pl._id === playlistid ? finalPlaylist : pl))
       );
 
       navigate(`/playlist/${playlistid}`);
@@ -85,6 +107,55 @@ const EditPlaylist = () => {
     }
 
     try {
+      // Decrement `addedToPlaylistsCount` for each song in the playlist
+      await Promise.all(
+        playlist.songs.map(async (songId) => {
+          const song = songs.find((s) => s._id === songId);
+          if (song) {
+            const newCount = Math.max((song.addedToPlaylistsCount || 0) - 1, 0);
+            await fetch(`/api/songs/${songId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ addedToPlaylistsCount: newCount }),
+            });
+
+            setSongs((prevSongs) =>
+              prevSongs.map((s) =>
+                s._id === songId ? { ...s, addedToPlaylistsCount: newCount } : s
+              )
+            );
+          }
+        })
+      );
+
+      // Remove playlist from creator's created_playlists and playlists arrays
+      const updatedUser = {
+        ...authenticatedUser,
+        created_playlists: authenticatedUser.created_playlists.filter(
+          (id) => id !== playlistid
+        ),
+        playlists: authenticatedUser.playlists.filter(
+          (id) => id !== playlistid
+        ),
+      };
+
+      // Update user in database
+      const userResponse = await fetch(`/api/users/${authenticatedUser._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          created_playlists: updatedUser.created_playlists,
+          playlists: updatedUser.playlists,
+        }),
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      // Delete the playlist from the server
       const response = await fetch(`/api/playlists/${playlistid}`, {
         method: "DELETE",
       });
@@ -93,33 +164,36 @@ const EditPlaylist = () => {
         throw new Error("Failed to delete playlist");
       }
 
+      // Update all states
       setPlaylists((prevPlaylists) =>
-        prevPlaylists.filter((pl) => pl.id !== parseInt(playlistid))
+        prevPlaylists.filter((pl) => pl._id !== playlistid)
       );
 
-      // Also update the creator's created_playlists array
-      const userResponse = await fetch(
-        `/api/users/${authenticatedUser.userId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            created_playlists: authenticatedUser.created_playlists.filter(
-              (id) => id !== parseInt(playlistid)
-            ),
-          }),
-        }
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === authenticatedUser._id ? updatedUser : user
+        )
       );
 
-      if (!userResponse.ok) {
-        console.warn("Failed to update user created playlists");
-      }
+      // Update authenticated user and session
+      setAuthenticatedUser(updatedUser);
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
 
       navigate("/home?tab=playlists");
     } catch (error) {
       console.error("Error deleting playlist:", error);
+      alert("Failed to delete playlist");
+    }
+  };
+
+  const handleImageSelect = (file) => {
+    setImageFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setCoverImage(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setCoverImage("");
     }
   };
 
@@ -139,12 +213,14 @@ const EditPlaylist = () => {
         hashtags={hashtags}
         setHashtags={setHashtags}
         genres={genres}
+        onImageSelect={handleImageSelect}
       />
 
       <ReorderSongs
         playlistSongs={playlistSongs}
         setPlaylistSongs={setPlaylistSongs}
         songs={songs}
+        playlistId={playlistid}
       />
 
       <div className="mt-4">

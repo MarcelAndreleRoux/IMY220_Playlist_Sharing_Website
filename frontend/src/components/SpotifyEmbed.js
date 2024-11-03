@@ -1,6 +1,8 @@
 import React from "react";
 
 const SpotifyEmbed = ({ songLink }) => {
+  if (!songLink) return <p className="text-muted">Song link unavailable</p>;
+
   // Extract the track ID from the song link
   const trackId = songLink.split("/track/")[1].split("?")[0];
 

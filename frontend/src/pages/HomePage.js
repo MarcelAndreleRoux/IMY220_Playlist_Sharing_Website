@@ -1,9 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { PlaylistContext } from "../context/PlaylistContext";
 import NavBar from "../components/NavBar";
 import SearchBar from "../components/SreachBar";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import SpotifyEmbed from "../components/SpotifyEmbed";
+import PlaylistCard from "../components/PlaylistCard";
 
 export const HomePage = () => {
   const { playlists, songs, users, authenticatedUser } =
@@ -12,6 +13,18 @@ export const HomePage = () => {
   const [activeTab, setActiveTab] = useState(
     searchParams.get("tab") || "songs"
   );
+
+  const [filteredResults, setFilteredResults] = useState({
+    songs: [],
+    playlists: [],
+  });
+
+  useEffect(() => {
+    setFilteredResults({
+      songs: songs,
+      playlists: getFilteredPlaylists(),
+    });
+  }, [songs, playlists, authenticatedUser]);
 
   // Get current user's friends
   const userFriends = authenticatedUser ? authenticatedUser.friends || [] : [];
@@ -25,10 +38,15 @@ export const HomePage = () => {
     return isCreatedByFriend || isFollowedByUser;
   });
 
-  const [filteredResults, setFilteredResults] = useState({
-    songs: songs.filter((song) => !song.isDeleted),
-    playlists: friendsPlaylists,
-  });
+  const getFilteredPlaylists = () => {
+    return playlists.filter((playlist) => {
+      const isCreatedByFriend = userFriends.includes(playlist.creatorId);
+      const isFollowedByUser = authenticatedUser?.playlists?.includes(
+        playlist.id
+      );
+      return isCreatedByFriend || isFollowedByUser;
+    });
+  };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -45,14 +63,12 @@ export const HomePage = () => {
     if (activeTab === "songs") {
       const filteredSongs = songs.filter(
         (song) =>
-          !song.isDeleted &&
-          (song.name.toLowerCase().includes(lowercasedTerm) ||
-            song.artist.toLowerCase().includes(lowercasedTerm))
+          song.name.toLowerCase().includes(lowercasedTerm) ||
+          song.artist.toLowerCase().includes(lowercasedTerm)
       );
       setFilteredResults((prev) => ({ ...prev, songs: filteredSongs }));
     } else {
-      // Filter within friends' playlists only
-      const filteredPlaylists = friendsPlaylists.filter(
+      const filteredPlaylists = getFilteredPlaylists().filter(
         (playlist) =>
           playlist.name.toLowerCase().includes(lowercasedTerm) ||
           playlist.hashtags?.some((tag) =>
@@ -113,35 +129,57 @@ export const HomePage = () => {
           {activeTab === "songs"
             ? // Songs Feed
               filteredResults.songs.map((song) => (
-                <div key={song.id} className="col-md-4 mb-3">
-                  <div className="card h-100">
+                <div
+                  key={song._id || `song-${song.link}`}
+                  className="col-md-4 mb-3"
+                >
+                  <div
+                    className={`card h-100 ${
+                      song.isDeleted ? "bg-light border-danger" : ""
+                    }`}
+                  >
                     <div className="card-body">
-                      <h5 className="card-title">{song.name}</h5>
+                      <h5
+                        className={`card-title ${
+                          song.isDeleted ? "text-muted" : ""
+                        }`}
+                      >
+                        {song.name}
+                        {song.isDeleted && (
+                          <span className="badge bg-danger ms-2">Deleted</span>
+                        )}
+                      </h5>
                       <h6 className="card-subtitle mb-2 text-muted">
                         {song.artist}
                       </h6>
-                      <SpotifyEmbed songLink={song.link} />
+                      {song.link && (
+                        <div key={`embed-${song._id || song.link}`}>
+                          <SpotifyEmbed songLink={song.link} />
+                        </div>
+                      )}
                       <p>
                         Added by:{" "}
-                        {
-                          users.find((u) => u.userId === song.creatorId)
-                            ?.username
-                        }
+                        {users.find((u) => u._id === song.creatorId)
+                          ?.username || "Unknown"}
                       </p>
-                      <p>Added to {song.addedToPlaylistsCount} playlists</p>
+                      <p>
+                        Added to {song.addedToPlaylistsCount || 0} playlists
+                      </p>
                       <div className="mt-2">
                         <Link
-                          to={`/song/${song.id}`}
+                          to={`/song/${song._id}`}
                           className="btn btn-secondary btn-sm me-2"
                         >
                           View Details
                         </Link>
-                        <Link
-                          to={`/addtoplaylist/${song.id}`}
-                          className="btn btn-primary btn-sm"
-                        >
-                          Add to Playlist
-                        </Link>
+                        {!song.isDeleted && (
+                          <Link
+                            to={`/addtoplaylist/${song._id}`}
+                            className="btn btn-primary btn-sm"
+                          >
+                            Add to Playlist
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -149,38 +187,12 @@ export const HomePage = () => {
               ))
             : // Playlists Feed
               filteredResults.playlists.map((playlist) => (
-                <div key={playlist.id} className="col-md-3 mb-4">
-                  <div className="card">
-                    <Link to={`/playlist/${playlist.id}`}>
-                      <img
-                        src={playlist.coverImage}
-                        alt={playlist.name}
-                        className="card-img-top"
-                        style={{ height: "160px", objectFit: "cover" }}
-                      />
-                    </Link>
-                    <div className="card-body">
-                      <h5 className="card-title">
-                        <Link
-                          to={`/playlist/${playlist.id}`}
-                          className="text-decoration-none"
-                        >
-                          {playlist.name}
-                        </Link>
-                      </h5>
-                      <p className="card-text">
-                        By{" "}
-                        {
-                          users.find((u) => u.userId === playlist.creatorId)
-                            ?.username
-                        }
-                      </p>
-                      <p className="card-text">
-                        {playlist.followers?.length || 0} Followers
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <PlaylistCard
+                  key={playlist._id}
+                  playlist={playlist}
+                  handleFastAdd={handleFastAdd}
+                  handleRemovePlaylist={handleRemovePlaylist}
+                />
               ))}
         </div>
 

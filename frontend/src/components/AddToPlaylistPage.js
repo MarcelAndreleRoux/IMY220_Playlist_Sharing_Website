@@ -1,19 +1,60 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PlaylistContext } from "../context/PlaylistContext";
 import DefaultImage from "../../public/assets/images/DefaultImage.jpg";
+import ImageUploader from "../components/ImageUploader";
 
 const AddToPlaylistPage = () => {
-  const { genres, setUsers, setPlaylists } = useContext(PlaylistContext);
+  const {
+    genres,
+    setUsers,
+    setPlaylists,
+    authenticatedUser,
+    setAuthenticatedUser,
+  } = useContext(PlaylistContext);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nextPlaylistNumber, setNextPlaylistNumber] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    genre: "",
+    description: "",
+    hashtags: "",
+  });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
   const navigate = useNavigate();
 
-  const nameRef = useRef(null);
-  const genreRef = useRef(null);
-  const coverImageRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const hashtagsRef = useRef(null);
+  useEffect(() => {
+    if (authenticatedUser?.created_playlists) {
+      setNextPlaylistNumber(authenticatedUser.created_playlists.length + 1);
+      setFormData((prev) => ({
+        ...prev,
+        name: `New Playlist #${authenticatedUser.created_playlists.length + 1}`,
+      }));
+    }
+  }, [authenticatedUser]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImageSelect = (file) => {
+    setImageFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -21,35 +62,45 @@ const AddToPlaylistPage = () => {
     setError("");
 
     try {
-      const authenticatedUser = JSON.parse(
-        sessionStorage.getItem("authenticatedUser")
-      );
-
       if (!authenticatedUser) {
         throw new Error("User not authenticated");
       }
 
-      const name = nameRef.current.value || "New Playlist";
-      const genre = genreRef.current.value;
-      const coverImage = coverImageRef.current.value;
-      const description =
-        descriptionRef.current.value || "No description provided.";
-      const hashtags = hashtagsRef.current.value;
-
-      if (!genre) {
+      if (!formData.genre) {
         throw new Error("Please select a genre");
       }
 
+      // Handle image upload first if there is one
+      let coverImageUrl = DefaultImage;
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append("image", imageFile);
+
+        const imageResponse = await fetch(`/api/playlists/temp/image`, {
+          method: "POST",
+          body: imageFormData,
+        });
+
+        if (!imageResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const imageData = await imageResponse.json();
+        coverImageUrl = imageData.imageUrl;
+      }
+
       const newPlaylist = {
-        name,
-        genre,
-        coverImage: coverImage || DefaultImage,
-        description,
-        creatorId: authenticatedUser.userId,
-        hashtags: hashtags ? hashtags.split(",").map((tag) => tag.trim()) : [],
+        name: formData.name || `New Playlist #${nextPlaylistNumber}`,
+        genre: formData.genre,
+        coverImage: coverImageUrl,
+        description: formData.description || "No description provided.",
+        creatorId: authenticatedUser._id,
+        hashtags: formData.hashtags
+          ? formData.hashtags.split(",").map((tag) => tag.trim())
+          : [],
         creationDate: new Date().toISOString(),
         songs: [],
-        followers: [authenticatedUser.userId],
+        followers: [authenticatedUser._id],
         comments: [],
       };
 
@@ -63,47 +114,46 @@ const AddToPlaylistPage = () => {
         throw new Error("Failed to create playlist");
       }
 
-      const savedPlaylist = await response.json();
+      const { result: createdPlaylist } = await response.json();
 
-      // Update playlists context
-      setPlaylists((prevPlaylists) => [...prevPlaylists, savedPlaylist]);
+      setPlaylists((prevPlaylists) => [...prevPlaylists, createdPlaylist]);
 
-      // Update user's created_playlists array
       const updatedUser = {
         ...authenticatedUser,
         created_playlists: [
           ...(authenticatedUser.created_playlists || []),
-          newPlaylistId,
+          createdPlaylist._id,
+        ],
+        playlists: [
+          ...(authenticatedUser.playlists || []),
+          createdPlaylist._id,
         ],
       };
 
-      // Update user in the database
-      const userResponse = await fetch(
-        `/api/users/${authenticatedUser.userId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            created_playlists: updatedUser.created_playlists,
-          }),
-        }
-      );
+      const userResponse = await fetch(`/api/users/${authenticatedUser._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          created_playlists: updatedUser.created_playlists,
+          playlists: updatedUser.playlists,
+        }),
+      });
 
       if (!userResponse.ok) {
         throw new Error("Failed to update user's playlists");
       }
 
-      // Update users context and session storage
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.userId === authenticatedUser.userId ? updatedUser : user
+          user._id === authenticatedUser._id ? updatedUser : user
         )
       );
+
+      setAuthenticatedUser(updatedUser);
       sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
 
-      // Navigate to the user's playlists page
       navigate(`/my_playlists/${authenticatedUser.username}`);
     } catch (err) {
       setError(err.message || "Failed to create playlist");
@@ -125,9 +175,10 @@ const AddToPlaylistPage = () => {
             type="text"
             className="form-control"
             id="name"
-            ref={nameRef}
-            placeholder={`New Playlist #${playlistCount + 1}`}
-            required
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder={`New Playlist #${nextPlaylistNumber}`}
           />
         </div>
 
@@ -135,7 +186,14 @@ const AddToPlaylistPage = () => {
           <label htmlFor="genre" className="form-label">
             Genre
           </label>
-          <select className="form-select" id="genre" ref={genreRef} required>
+          <select
+            className="form-select"
+            id="genre"
+            name="genre"
+            value={formData.genre}
+            onChange={handleChange}
+            required
+          >
             <option value="">Select a genre</option>
             {genres.map((genre, index) => (
               <option key={index} value={genre}>
@@ -146,15 +204,11 @@ const AddToPlaylistPage = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="coverImage" className="form-label">
-            Cover Image URL (optional)
-          </label>
-          <input
-            type="url"
-            className="form-control"
-            id="coverImage"
-            ref={coverImageRef}
-            placeholder="Enter image URL"
+          <label className="form-label">Cover Image</label>
+          <ImageUploader
+            currentImage={imagePreview}
+            onImageSelect={handleImageSelect}
+            className="mt-2"
           />
         </div>
 
@@ -165,7 +219,9 @@ const AddToPlaylistPage = () => {
           <textarea
             className="form-control"
             id="description"
-            ref={descriptionRef}
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
             placeholder="Enter playlist description"
           />
         </div>
@@ -178,7 +234,9 @@ const AddToPlaylistPage = () => {
             type="text"
             className="form-control"
             id="hashtags"
-            ref={hashtagsRef}
+            name="hashtags"
+            value={formData.hashtags}
+            onChange={handleChange}
             placeholder="e.g., #chill, #workout"
           />
         </div>
@@ -191,9 +249,9 @@ const AddToPlaylistPage = () => {
         </button>
       </form>
 
-      <NavLink to="/home?tab=playlists" className="btn btn-link mt-3">
+      <button onClick={() => navigate(-1)} className="btn btn-link mt-3">
         Back to Playlist List
-      </NavLink>
+      </button>
     </div>
   );
 };

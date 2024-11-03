@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
 import { PlaylistContext } from "../context/PlaylistContext";
 import PlaylistCard from "../components/PlaylistCard";
@@ -15,7 +15,7 @@ const PlaylistFeed = () => {
   );
 
   const [filteredPlaylists, setFilteredPlaylists] = useState(playlists);
-  const [sortBy, setSortBy] = useState("recent"); // 'recent', 'popular', 'name'
+  const [sortBy, setSortBy] = useState("recent");
 
   const handleSearch = (searchTerm) => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -42,24 +42,43 @@ const PlaylistFeed = () => {
     setFilteredPlaylists(filteredPlaylists);
   };
 
-  const handleFastAdd = (playlist) => {
-    if (currentUser) {
-      const alreadyInPlaylists = currentUser.playlists.includes(playlist.id);
-      if (!alreadyInPlaylists) {
-        const updatedUser = {
-          ...currentUser,
-          playlists: [...currentUser.playlists, playlist.id],
-        };
-        const updatedUsers = users.map((user) =>
-          user.username === authenticatedUser?.username ? updatedUser : user
-        );
-        setUsers(updatedUsers);
-        localStorage.setItem("users", JSON.stringify(updatedUsers));
-      } else {
-        alert("Playlist is already in your personal playlists.");
-      }
-    } else {
-      alert("User not found.");
+  const handleFastAdd = async (playlist) => {
+    if (!authenticatedUser) {
+      alert("Please log in to save playlists");
+      return;
+    }
+
+    if (authenticatedUser.created_playlists.includes(playlist._id)) {
+      return;
+    }
+
+    try {
+      const updatedUser = {
+        ...authenticatedUser,
+        playlists: [...authenticatedUser.playlists, playlist._id],
+      };
+
+      const response = await fetch(`/api/users/${authenticatedUser._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          playlists: updatedUser.playlists,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save playlist");
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === authenticatedUser._id ? updatedUser : user
+        )
+      );
+      sessionStorage.setItem("authenticatedUser", JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error("Error saving playlist:", error);
+      alert("Failed to save playlist");
     }
   };
 
@@ -101,6 +120,10 @@ const PlaylistFeed = () => {
 
     setFilteredPlaylists(sortedPlaylists);
   };
+
+  useEffect(() => {
+    setFilteredPlaylists(playlists);
+  }, [playlists]);
 
   return (
     <>
@@ -144,13 +167,13 @@ const PlaylistFeed = () => {
           {filteredPlaylists.length > 0 ? (
             filteredPlaylists.map((playlist) => (
               <PlaylistCard
-                key={playlist.id}
+                key={playlist._id}
                 playlist={playlist}
                 currentUser={currentUser}
                 handleFastAdd={handleFastAdd}
                 handleRemovePlaylist={handleRemovePlaylist}
                 isCreatedPlaylist={currentUser?.created_playlists.includes(
-                  playlist.id
+                  playlist._id
                 )}
               />
             ))

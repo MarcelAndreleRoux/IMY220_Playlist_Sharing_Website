@@ -1,134 +1,114 @@
-import React, { useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import DefaultPfP from "../../public/assets/images/profile_image_default.jpg";
+import React, { useState } from "react";
+import { AiOutlineLike, AiFillLike } from "react-icons/ai";
+import { BsPinAngle, BsPinAngleFill } from "react-icons/bs";
 
-const CommentsSection = ({
-  playlist,
-  findUserById,
-  updatePlaylistComments,
-  currentUser,
+const CommentSection = ({
+  comments,
+  onLikeComment,
+  onPinComment,
+  currentUserId,
+  isPlaylistCreator,
 }) => {
-  const [commentsToShow, setCommentsToShow] = useState(5);
-  const [newCommentText, setNewCommentText] = useState("");
-  const [newCommentImage, setNewCommentImage] = useState(null);
-  const fileInputRef = useRef(null);
+  const [visibleComments, setVisibleComments] = useState(5);
 
-  const handleLikeDislikeToggle = (commentId) => {
-    const updatedComments = playlist.comments.map((comment) => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          likes: comment.likedByUser ? comment.likes - 1 : comment.likes + 1,
-          likedByUser: !comment.likedByUser,
-        };
-      }
-      return comment;
-    });
-    updatePlaylistComments(playlist.id, updatedComments);
+  const sortedComments = [...comments].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  const showMoreComments = () => {
+    setVisibleComments((prev) => prev + 5);
   };
-
-  const handlePinComment = (commentId) => {
-    const updatedComments = playlist.comments.map((comment) => ({
-      ...comment,
-      pinned: comment.id === commentId,
-    }));
-    updatePlaylistComments(playlist.id, updatedComments);
-  };
-
-  const handleAddComment = () => {
-    const newComment = {
-      id: playlist.comments.length + 1,
-      userId: currentUser.userId,
-      text: newCommentText,
-      image: newCommentImage,
-      likes: 0,
-      stars: 0,
-      pinned: false,
-    };
-
-    const updatedComments = [...playlist.comments, newComment];
-    updatePlaylistComments(playlist.id, updatedComments);
-    setNewCommentText("");
-    setNewCommentImage(null);
-  };
-
-  const loadMoreComments = () => {
-    setCommentsToShow((prev) => prev + 5);
-  };
-
-  const pinnedComment = playlist.comments.find((comment) => comment.pinned);
 
   return (
-    <>
-      <h3>Comments</h3>
-      {pinnedComment && (
-        <div className="pinned-comment alert alert-info">
-          <strong>Pinned:</strong>
-          <p>{pinnedComment.text}</p>
-          <p>{pinnedComment.likes} Likes</p>
-        </div>
-      )}
+    <div className="mt-8 mb-16">
+      <h3 className="text-xl font-bold mb-4">Comments ({comments.length})</h3>
+      <div className="space-y-4">
+        {sortedComments.slice(0, visibleComments).map((comment, index) => (
+          <div
+            key={comment._id || index}
+            className={`p-4 rounded-lg border ${
+              comment.isPinned ? "bg-gray-50 border-blue-200" : "bg-white"
+            }`}
+          >
+            {comment.isPinned && (
+              <div className="text-sm text-blue-600 mb-2 flex items-center gap-2">
+                <BsPinAngleFill size={16} />
+                <span>Pinned Comment</span>
+              </div>
+            )}
 
-      <div className="row">
-        {playlist.comments.slice(0, commentsToShow).map((comment) => {
-          const user = findUserById(comment.userId) || {
-            username: "Unknown User",
-            profilePic: DefaultPfP,
-          };
+            <div className="flex items-start gap-4">
+              <img
+                src={comment.authorPic || "https://via.placeholder.com/40"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full"
+              />
 
-          return (
-            <div key={comment.id} className="col-md-6 mb-4">
-              <div className="card">
-                <div className="card-body">
-                  <div className="d-flex align-items-center mb-2">
-                    <img
-                      src={user.profilePic || DefaultPfP}
-                      alt={user.username}
-                      width="50"
-                      className="rounded-circle me-2"
-                    />
-                    <Link to={`/profile/${user.userId}`}>{user.username}</Link>
-                  </div>
-                  <p>{comment.text}</p>
-                  {comment.image && (
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-semibold">{comment.authorName}</h4>
+                  <span className="text-sm text-gray-500">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <p className="mt-2">{comment.text}</p>
+
+                {comment.image && (
+                  <div className="mt-2 max-w-lg">
                     <img
                       src={comment.image}
-                      alt="Comment Attachment"
-                      className="img-fluid"
+                      alt="Comment attachment"
+                      className="rounded w-full h-auto object-cover"
+                      style={{ maxHeight: "300px" }}
                     />
+                  </div>
+                )}
+
+                <div className="mt-3 flex items-center gap-4">
+                  <button
+                    onClick={() => onLikeComment(comment._id)}
+                    className={`flex items-center gap-1 ${
+                      comment.likedBy?.includes(currentUserId)
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    } hover:text-blue-600 transition-colors duration-200`}
+                  >
+                    {comment.likedBy?.includes(currentUserId) ? (
+                      <AiFillLike size={20} />
+                    ) : (
+                      <AiOutlineLike size={20} />
+                    )}
+                    <span>{comment.likes}</span>
+                  </button>
+
+                  {isPlaylistCreator && !comment.isPinned && (
+                    <button
+                      onClick={() => onPinComment(comment._id)}
+                      className="text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center gap-1"
+                    >
+                      <BsPinAngle size={16} />
+                      <span>Pin</span>
+                    </button>
                   )}
                 </div>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
-
-      {playlist.comments.length > commentsToShow && (
-        <button className="btn btn-secondary mt-3" onClick={loadMoreComments}>
-          Load More Comments
+      {comments.length > visibleComments && (
+        <button
+          onClick={showMoreComments}
+          className="mt-4 w-full py-2 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+        >
+          Show More Comments
         </button>
       )}
-
-      <textarea
-        className="form-control mb-2"
-        placeholder="Write your comment..."
-        value={newCommentText}
-        onChange={(e) => setNewCommentText(e.target.value)}
-      />
-      <input
-        type="file"
-        className="form-control mb-2"
-        ref={fileInputRef}
-        onChange={(e) =>
-          setNewCommentImage(URL.createObjectURL(e.target.files[0]))
-        }
-      />
-      <button className="btn btn-primary" onClick={handleAddComment}>
-        Post Comment
-      </button>
-    </>
+    </div>
   );
 };
 
-export default CommentsSection;
+export default CommentSection;

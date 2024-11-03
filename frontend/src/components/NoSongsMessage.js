@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const NoSongsMessage = ({
   message = "No songs added yet.",
   linkText = "Add A Song",
-  linkTo = "/songfeed",
+  linkTo = "/home?tab=songs",
 }) => {
   return (
     <div className="container mt-5 text-center">

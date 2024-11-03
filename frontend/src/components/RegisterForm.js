@@ -12,6 +12,9 @@ const RegisterForm = () => {
   const [error, setError] = useState("");
   const [formValid, setFormValid] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const navigate = useNavigate();
 
   const validateUserInput = async (e) => {
@@ -72,17 +75,13 @@ const RegisterForm = () => {
         throw new Error("Registration failed");
       }
 
-      const savedUser = await response.json();
-      setUsers([...users, savedUser.result]);
+      const { result } = await response.json();
+      setUsers((prevUsers) => [...prevUsers, result]);
 
-      const { password: _, ...userWithoutPassword } = savedUser.result;
+      // Auto-fill login form through local storage
+      sessionStorage.setItem("lastRegisteredEmail", email);
+      sessionStorage.setItem("lastRegisteredPassword", password);
 
-      sessionStorage.setItem(
-        "authenticatedUser",
-        JSON.stringify(userWithoutPassword)
-      );
-
-      setAuthenticatedUser(userWithoutPassword);
       setFormValid(true);
       setError("");
       navigate("/login");
@@ -124,26 +123,44 @@ const RegisterForm = () => {
         <label htmlFor="password" className="form-label">
           Password
         </label>
-        <input
-          type="password"
-          className="form-control"
-          id="password"
-          ref={passwordRef}
-          placeholder="Enter password here..."
-        />
+        <div className="input-group">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="form-control"
+            id="password"
+            ref={passwordRef}
+            placeholder="Enter password here..."
+          />
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
       </div>
 
       <div className="mb-3">
         <label htmlFor="confirmPassword" className="form-label">
           Confirm Password
         </label>
-        <input
-          type="password"
-          className="form-control"
-          id="confirmPassword"
-          ref={confirmPasswordRef}
-          placeholder="Confirm your password..."
-        />
+        <div className="input-group">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            className="form-control"
+            id="confirmPassword"
+            ref={confirmPasswordRef}
+            placeholder="Confirm your password..."
+          />
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            {showConfirmPassword ? "Hide" : "Show"}
+          </button>
+        </div>
       </div>
 
       <div>
