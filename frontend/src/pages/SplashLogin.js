@@ -1,23 +1,31 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
+import LOGINIMG from "../../public/assets/images/login.jpg";
 
 const SplashLogin = () => {
   return (
-    <div className="container mt-5">
-      <h1>Login</h1>
-      <p className="text-muted">
-        <small>Login with credentials</small>
-      </p>
+    <div className="min-h-screen bg-dark text-light flex">
+      <div
+        className="hidden md:flex w-1/2 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${LOGINIMG})`,
+        }}
+      ></div>
 
-      <LoginForm />
-
-      <p className="mt-3">
-        <small>
-          Haven't created an account yet?
-          <Link to="/register">Sign Up</Link>
-        </small>
-      </p>
+      <div className="flex w-full md:w-1/2 justify-center items-center p-6">
+        <div className="w-full max-w-md">
+          <LoginForm />
+          <p className="mt-6 text-center text-gray-300">
+            Haven't created an account yet?{" "}
+            <a
+              href="/register"
+              className="text-yellow-400 hover:text-yellow-500"
+            >
+              Sign Up
+            </a>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

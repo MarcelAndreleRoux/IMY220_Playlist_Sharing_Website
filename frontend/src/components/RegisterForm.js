@@ -1,6 +1,7 @@
 import React, { useRef, useState, useContext } from "react";
 import { PlaylistContext } from "../context/PlaylistContext";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const RegisterForm = () => {
   const { users, setUsers, setAuthenticatedUser } = useContext(PlaylistContext);
@@ -92,88 +93,97 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={validateUserInput}>
-      <div className="mb-3">
-        <label htmlFor="username" className="form-label">
+    <form
+      onSubmit={validateUserInput}
+      className="bg-gray-800 p-8 rounded-lg shadow-md text-white"
+    >
+      <h2 className="text-3xl font-semibold text-yellow-400 mb-4 text-center">
+        Register
+      </h2>
+      <p className="text-center text-gray-400 mb-6">Create a new account</p>
+
+      <div className="mb-4">
+        <label htmlFor="username" className="block text-gray-300">
           Username
         </label>
         <input
           type="text"
-          className="form-control"
           id="username"
           ref={usernameRef}
           placeholder="Enter username here..."
+          className="w-full p-3 mt-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="email" className="form-label">
+      <div className="mb-4">
+        <label htmlFor="email" className="block text-gray-300">
           Email
         </label>
         <input
           type="email"
-          className="form-control"
           id="email"
           ref={emailRef}
           placeholder="Enter email here..."
+          className="w-full p-3 mt-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="password" className="form-label">
+      <div className="mb-4">
+        <label htmlFor="password" className="block text-gray-300">
           Password
         </label>
-        <div className="input-group">
+        <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
-            className="form-control"
             id="password"
             ref={passwordRef}
             placeholder="Enter password here..."
+            className="w-full p-3 mt-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
           <button
             type="button"
-            className="btn btn-outline-secondary"
             onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300"
           >
-            {showPassword ? "Hide" : "Show"}
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="confirmPassword" className="form-label">
+      <div className="mb-4">
+        <label htmlFor="confirmPassword" className="block text-gray-300">
           Confirm Password
         </label>
-        <div className="input-group">
+        <div className="relative">
           <input
             type={showConfirmPassword ? "text" : "password"}
-            className="form-control"
             id="confirmPassword"
             ref={confirmPasswordRef}
             placeholder="Confirm your password..."
+            className="w-full p-3 mt-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
           <button
             type="button"
-            className="btn btn-outline-secondary"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300"
           >
-            {showConfirmPassword ? "Hide" : "Show"}
+            {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
       </div>
 
-      <div>
-        <button type="submit" className="btn btn-success">
-          Register
-        </button>
-        {formValid && <p className="text-success">Registration successful!</p>}
-      </div>
+      <button
+        type="submit"
+        className="w-full bg-yellow-500 hover:bg-yellow-600 p-3 rounded mt-4 text-gray-900 font-semibold"
+      >
+        Register
+      </button>
 
-      {error && (
-        <div className="mt-3 alert alert-danger" role="alert">
-          {error}
-        </div>
+      {error && <div className="mt-4 text-red-500 text-center">{error}</div>}
+      {formValid && (
+        <p className="mt-4 text-green-500 text-center">
+          Registration successful!
+        </p>
       )}
     </form>
   );

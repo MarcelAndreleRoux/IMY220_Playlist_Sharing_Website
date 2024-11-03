@@ -225,6 +225,115 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+// ADD PROFILE PICTURE
+app.patch(
+  "/api/users/:id/profile-picture",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const imageUrl = `/assets/uploads/profiles/${req.file.filename}`;
+
+      const result = await runUpdateQuery(
+        "users",
+        { _id: new ObjectId(id) },
+        { $set: { profilePic: imageUrl } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const updatedUser = await runFindQuery(
+        "users",
+        { _id: new ObjectId(id) },
+        {}
+      );
+      res.json({ message: "Profile picture updated!", result: updatedUser[0] });
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      res.status(400).json({ message: error.message });
+    }
+  }
+);
+
+// FOLLOW
+app.patch("/api/users/:id/follow", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { followerId } = req.body;
+
+    // First, update the user being followed
+    const userResult = await runUpdateQuery(
+      "users",
+      { _id: new ObjectId(userId) },
+      { $addToSet: { friends: followerId } }
+    );
+
+    // Then, update the follower's friends list
+    const followerResult = await runUpdateQuery(
+      "users",
+      { _id: new ObjectId(followerId) },
+      { $addToSet: { friends: userId } }
+    );
+
+    if (userResult.matchedCount === 0 || followerResult.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updatedUser = await runFindQuery(
+      "users",
+      { _id: new ObjectId(userId) },
+      {}
+    );
+    res.json({ message: "Friend added!", result: updatedUser[0] });
+  } catch (error) {
+    console.error("Error adding friend:", error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// UNFOLLOW
+app.patch("/api/users/:id/unfollow", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { followerId } = req.body;
+
+    // First, update the user being unfollowed
+    const userResult = await runUpdateQuery(
+      "users",
+      { _id: new ObjectId(userId) },
+      { $pull: { friends: followerId } }
+    );
+
+    // Then, update the follower's friends list
+    const followerResult = await runUpdateQuery(
+      "users",
+      { _id: new ObjectId(followerId) },
+      { $pull: { friends: userId } }
+    );
+
+    if (userResult.matchedCount === 0 || followerResult.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updatedUser = await runFindQuery(
+      "users",
+      { _id: new ObjectId(userId) },
+      {}
+    );
+    res.json({ message: "Friend removed!", result: updatedUser[0] });
+  } catch (error) {
+    console.error("Error removing friend:", error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // GET: Retrieve a user by id
 app.get("/api/users/:id", async (req, res) => {
   try {

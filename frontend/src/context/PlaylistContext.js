@@ -28,13 +28,30 @@ export const PlaylistProvider = ({
 
   // Set the users Authentication
   const handleSetAuthenticatedUser = (user) => {
-    setAuthenticatedUser(user);
-    if (user) {
-      sessionStorage.setItem("authenticatedUser", JSON.stringify(user));
-      setCookie("userId", user._id, 1);
-    } else {
-      sessionStorage.removeItem("authenticatedUser");
-      deleteCookie("userId");
+    try {
+      if (user) {
+        // Make sure user is a valid object before storing
+        const userToStore = {
+          ...user,
+          _id: user._id || null,
+          profilePic: user.profilePic || null,
+        };
+
+        setAuthenticatedUser(userToStore);
+
+        sessionStorage.setItem(
+          "authenticatedUser",
+          JSON.stringify(userToStore)
+        );
+
+        setCookie("userId", userToStore._id, 1);
+      } else {
+        setAuthenticatedUser(null);
+        sessionStorage.removeItem("authenticatedUser");
+        deleteCookie("userId");
+      }
+    } catch (error) {
+      console.error("Error setting authenticated user:", error);
     }
   };
 

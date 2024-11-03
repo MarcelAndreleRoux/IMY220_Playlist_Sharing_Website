@@ -63,62 +63,53 @@ const PersonalPlaylists = (handleRemovePlaylist) => {
   return (
     <>
       <NavBar />
-      <div className="container mt-5">
-        <h1 className="mb-4">
-          {isOwnProfile
-            ? "My Playlists"
-            : `${currentUser?.username}'s Playlists`}
+      <div className="container mx-auto mt-5">
+        <h1 className="text-3xl font-bold text-yellow-500 mb-4">
+          My Playlists
         </h1>
 
-        <div className="mb-5">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Created Playlists</h2>
-            <Link to="/create_playlist" className="btn btn-primary">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-orange-500">
+              Created Playlists
+            </h2>
+            <Link
+              to="/create_playlist"
+              className="text-blue-500 hover:underline"
+            >
               Create New Playlist
             </Link>
           </div>
 
-          {createdPlaylists.length > 0 ? (
-            <div className="row">
-              {createdPlaylists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist._id}
-                  playlist={playlist}
-                  currentUser={currentUser}
-                  isCreatedPlaylist={true}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted text-center py-4">
-              You haven't created any playlists yet
-            </p>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {createdPlaylists.length > 0 ? (
+              createdPlaylists.map((playlist) => (
+                <PlaylistCard key={playlist._id} playlist={playlist} />
+              ))
+            ) : (
+              <p className="text-gray-400 text-center col-span-3">
+                You haven't created any playlists yet.
+              </p>
+            )}
+          </div>
         </div>
 
-        <div>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Saved Playlists</h2>
-            <Link to="/playlistfeed" className="btn btn-success">
-              Explore Playlists
-            </Link>
-          </div>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-orange-500 mb-4">
+            Saved Playlists
+          </h2>
 
-          {likedPlaylists.length > 0 ? (
-            <div className="row">
-              {likedPlaylists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist._id}
-                  playlist={playlist}
-                  currentUser={currentUser}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted text-center py-4">
-              You haven't saved any playlists yet
-            </p>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {likedPlaylists.length > 0 ? (
+              likedPlaylists.map((playlist) => (
+                <PlaylistCard key={playlist._id} playlist={playlist} />
+              ))
+            ) : (
+              <p className="text-gray-400 text-center col-span-3">
+                You haven't saved any playlists yet.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </>

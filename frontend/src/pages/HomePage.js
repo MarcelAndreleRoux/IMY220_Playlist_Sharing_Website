@@ -24,7 +24,12 @@ export const HomePage = () => {
       songs: songs,
       playlists: getFilteredPlaylists(),
     });
-  }, [songs, playlists, authenticatedUser]);
+  }, [
+    songs,
+    playlists,
+    authenticatedUser?.friends,
+    authenticatedUser?.playlists,
+  ]);
 
   // Get current user's friends
   const userFriends = authenticatedUser ? authenticatedUser.friends || [] : [];
@@ -39,12 +44,20 @@ export const HomePage = () => {
   });
 
   const getFilteredPlaylists = () => {
+    if (!authenticatedUser) return [];
+
     return playlists.filter((playlist) => {
-      const isCreatedByFriend = userFriends.includes(playlist.creatorId);
-      const isFollowedByUser = authenticatedUser?.playlists?.includes(
-        playlist.id
+      const isCreatedByFriend = authenticatedUser.friends?.includes(
+        playlist.creatorId
       );
-      return isCreatedByFriend || isFollowedByUser;
+      const isFollowedByUser = authenticatedUser.playlists?.includes(
+        playlist._id
+      );
+      const isCreatedByUser = authenticatedUser.created_playlists?.includes(
+        playlist._id
+      );
+
+      return isCreatedByFriend || isFollowedByUser || isCreatedByUser;
     });
   };
 
@@ -85,36 +98,34 @@ export const HomePage = () => {
   return (
     <>
       <NavBar />
-      <div className="container mt-5">
-        <div
-          className="mb-4"
-          style={{
-            backgroundColor: "#8e44ad",
-            padding: "20px",
-            borderRadius: "8px",
-          }}
-        >
+      <div className="container mt-5 no-underline">
+        <div className="mb-6">
           <SearchBar
             onSearch={handleSearch}
             placeholder={`Search ${
               activeTab === "songs" ? "Songs" : "Playlists"
             }...`}
+            className="p-4 bg-amber-400 rounded-md shadow-md"
           />
         </div>
 
-        <div className="d-flex mb-4">
+        <div className="flex mb-4">
           <button
-            className={`btn ${
-              activeTab === "songs" ? "btn-danger" : "btn-outline-danger"
-            } flex-grow-1 me-2`}
+            className={`flex-grow p-2 rounded-l-md ${
+              activeTab === "songs"
+                ? "bg-yellow-700 text-white"
+                : "bg-amber-400 text-gray-900"
+            }`}
             onClick={() => handleTabChange("songs")}
           >
             Songs Feed
           </button>
           <button
-            className={`btn ${
-              activeTab === "playlists" ? "btn-primary" : "btn-outline-primary"
-            } flex-grow-1`}
+            className={`flex-grow p-2 rounded-r-md ${
+              activeTab === "playlists"
+                ? "bg-yellow-700 text-white"
+                : "bg-amber-400 text-gray-900"
+            }`}
             onClick={() => handleTabChange("playlists")}
           >
             Friends' Activity
@@ -125,74 +136,57 @@ export const HomePage = () => {
           <p className="text-muted mb-4">{playlistsFeedDescription}</p>
         )}
 
-        <div className="row">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeTab === "songs"
-            ? // Songs Feed
-              filteredResults.songs.map((song) => (
+            ? filteredResults.songs.map((song) => (
                 <div
                   key={song._id || `song-${song.link}`}
-                  className="col-md-4 mb-3"
+                  className={`p-4 rounded-lg shadow-md ${
+                    song.isDeleted ? "bg-gray-100 border-red-400" : "bg-white"
+                  }`}
                 >
-                  <div
-                    className={`card h-100 ${
-                      song.isDeleted ? "bg-light border-danger" : ""
+                  <h5
+                    className={`text-lg font-semibold ${
+                      song.isDeleted ? "text-gray-400" : "text-black"
                     }`}
                   >
-                    <div className="card-body">
-                      <h5
-                        className={`card-title ${
-                          song.isDeleted ? "text-muted" : ""
-                        }`}
+                    {song.name}
+                    {song.isDeleted && (
+                      <span className="ml-2 text-red-500 font-medium">
+                        (Deleted)
+                      </span>
+                    )}
+                  </h5>
+                  <p className="text-gray-500">{song.artist}</p>
+                  {song.link && <SpotifyEmbed songLink={song.link} />}
+                  <p className="mt-2 text-gray-600">
+                    Added by:{" "}
+                    {users.find((u) => u._id === song.creatorId)?.username ||
+                      "Unknown"}
+                  </p>
+                  <p className="text-gray-600">
+                    Added to {song.addedToPlaylistsCount || 0} playlists
+                  </p>
+                  <div className="mt-4 flex space-x-2">
+                    <Link
+                      to={`/song/${song._id}`}
+                      className="px-3 py-1 bg-gray-200 text-gray-800 hover:text-gray-200 hover:bg-gray-800 rounded no-underline"
+                    >
+                      View Details
+                    </Link>
+                    {!song.isDeleted && (
+                      <Link
+                        to={`/addtoplaylist/${song._id}`}
+                        className="px-3 py-1 bg-yellow-900 hover:bg-yellow-700 hover:text-gray-200 text-white rounded no-underline"
                       >
-                        {song.name}
-                        {song.isDeleted && (
-                          <span className="badge bg-danger ms-2">Deleted</span>
-                        )}
-                      </h5>
-                      <h6 className="card-subtitle mb-2 text-muted">
-                        {song.artist}
-                      </h6>
-                      {song.link && (
-                        <div key={`embed-${song._id || song.link}`}>
-                          <SpotifyEmbed songLink={song.link} />
-                        </div>
-                      )}
-                      <p>
-                        Added by:{" "}
-                        {users.find((u) => u._id === song.creatorId)
-                          ?.username || "Unknown"}
-                      </p>
-                      <p>
-                        Added to {song.addedToPlaylistsCount || 0} playlists
-                      </p>
-                      <div className="mt-2">
-                        <Link
-                          to={`/song/${song._id}`}
-                          className="btn btn-secondary btn-sm me-2"
-                        >
-                          View Details
-                        </Link>
-                        {!song.isDeleted && (
-                          <Link
-                            to={`/addtoplaylist/${song._id}`}
-                            className="btn btn-primary btn-sm"
-                          >
-                            Add to Playlist
-                          </Link>
-                        )}
-                      </div>
-                    </div>
+                        Add to Playlist
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))
-            : // Playlists Feed
-              filteredResults.playlists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist._id}
-                  playlist={playlist}
-                  handleFastAdd={handleFastAdd}
-                  handleRemovePlaylist={handleRemovePlaylist}
-                />
+            : filteredResults.playlists.map((playlist) => (
+                <PlaylistCard key={playlist._id} playlist={playlist} />
               ))}
         </div>
 

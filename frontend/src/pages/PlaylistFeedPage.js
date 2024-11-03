@@ -128,34 +128,42 @@ const PlaylistFeed = () => {
   return (
     <>
       <NavBar />
-      <div className="container mt-5">
-        <h1>Explore Playlists</h1>
-        <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="container mx-auto mt-5">
+        <h1 className="text-3xl font-bold text-yellow-500">
+          Explore Playlists
+        </h1>
+        <div className="flex justify-between items-center mb-4">
           <SearchBar
             onSearch={handleSearch}
             placeholder="Search by name, hashtag, or genre..."
           />
-          <div className="btn-group">
+          <div className="flex space-x-2">
             <button
-              className={`btn btn-outline-primary ${
-                sortBy === "recent" ? "active" : ""
-              }`}
+              className={`px-4 py-2 border ${
+                sortBy === "recent"
+                  ? "bg-yellow-400 text-white"
+                  : "text-yellow-400 border-yellow-400"
+              } rounded`}
               onClick={() => handleSortChange("recent")}
             >
               Most Recent
             </button>
             <button
-              className={`btn btn-outline-primary ${
-                sortBy === "popular" ? "active" : ""
-              }`}
+              className={`px-4 py-2 border ${
+                sortBy === "popular"
+                  ? "bg-yellow-400 text-white"
+                  : "text-yellow-400 border-yellow-400"
+              } rounded`}
               onClick={() => handleSortChange("popular")}
             >
               Most Popular
             </button>
             <button
-              className={`btn btn-outline-primary ${
-                sortBy === "name" ? "active" : ""
-              }`}
+              className={`px-4 py-2 border ${
+                sortBy === "name"
+                  ? "bg-yellow-400 text-white"
+                  : "text-yellow-400 border-yellow-400"
+              } rounded`}
               onClick={() => handleSortChange("name")}
             >
               A-Z
@@ -163,25 +171,18 @@ const PlaylistFeed = () => {
           </div>
         </div>
 
-        <div className="row">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPlaylists.length > 0 ? (
             filteredPlaylists.map((playlist) => (
               <PlaylistCard
                 key={playlist._id}
                 playlist={playlist}
                 currentUser={currentUser}
-                handleFastAdd={handleFastAdd}
-                handleRemovePlaylist={handleRemovePlaylist}
-                isCreatedPlaylist={currentUser?.created_playlists.includes(
-                  playlist._id
-                )}
               />
             ))
           ) : (
-            <div className="col-12 text-center">
-              <p className="text-muted">
-                No playlists found matching your search.
-              </p>
+            <div className="col-span-3 text-center text-gray-500">
+              <p>No playlists found matching your search.</p>
             </div>
           )}
         </div>

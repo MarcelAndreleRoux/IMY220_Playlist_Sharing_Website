@@ -9,17 +9,9 @@ const NavBar = () => {
     useContext(PlaylistContext);
   const navigate = useNavigate();
 
-  // Debugging: Log the authenticatedUser
   useEffect(() => {
     console.log("Authenticated User: ", authenticatedUser);
   }, [authenticatedUser]);
-
-  const handleMyPlaylistsClick = (e) => {
-    if (!authenticatedUser) {
-      e.preventDefault();
-      alert("You must be logged in to view your playlists.");
-    }
-  };
 
   const handleLogout = () => {
     setAuthenticatedUser(null);
@@ -32,37 +24,49 @@ const NavBar = () => {
   const profilePic = authenticatedUser?.profilePic;
 
   return (
-    <nav>
-      <Link to="/home">
-        <img width="100px" src={SightLogo} alt="home_logo" />
+    <nav className="flex items-center justify-between bg-yellow-400 px-4 py-2 shadow-md">
+      <Link to="/home" className="flex items-center">
+        <img src={SightLogo} alt="home_logo" className="w-20" />
       </Link>
 
-      <Link to="/playlistfeed">Explore</Link>
-
-      <Link to={`/my_playlists/${username}`} onClick={handleMyPlaylistsClick}>
-        My Playlist
-      </Link>
-
-      {authenticatedUser ? (
-        <Link to={`/profile/${username}`}>
-          <img
-            width="50px"
-            src={profilePic}
-            alt="profile_image"
-            className="rounded-circle"
-          />
+      <div className="flex space-x-8 font-semibold">
+        <Link to="/home" className="hover:underline">
+          Home
         </Link>
-      ) : (
-        <Link to="/login" className="btn btn-primary">
-          Login
+        <Link to="/playlistfeed" className="hover:underline">
+          Explore
         </Link>
-      )}
+        <Link to={`/my_playlists/${username}`} className="hover:underline">
+          My Collection
+        </Link>
+      </div>
 
-      {authenticatedUser && (
-        <button className="btn btn-danger" onClick={handleLogout}>
-          Logout
-        </button>
-      )}
+      <div className="flex items-center space-x-4">
+        {authenticatedUser ? (
+          <Link to={`/profile/${username}`}>
+            <img
+              src={profilePic}
+              alt="profile_image"
+              className="w-12 h-12 rounded-full"
+            />
+          </Link>
+        ) : (
+          <Link
+            to="/login"
+            className="bg-gray-800 text-white py-2 px-4 rounded hover:bg-gray-600"
+          >
+            Login
+          </Link>
+        )}
+        {authenticatedUser && (
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        )}
+      </div>
     </nav>
   );
 };
